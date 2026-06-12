@@ -17,7 +17,7 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"],
-      "@workspace/api-client-react": ["src/lib/api-mock.ts"]
+      "@workspace/api-client-react": ["src/lib/api-firebase.ts"]
     }
   },
   "include": ["src"]

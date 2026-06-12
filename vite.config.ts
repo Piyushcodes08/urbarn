@@ -8,8 +8,8 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "src"),
-      // Redirect workspace package to our local mock
-      "@workspace/api-client-react": path.resolve(__dirname, "src/lib/api-mock.ts"),
+      // Redirect workspace package to our local Firebase client
+      "@workspace/api-client-react": path.resolve(__dirname, "src/lib/api-firebase.ts"),
     },
     dedupe: ["react", "react-dom"],
   },

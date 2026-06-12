@@ -1,20 +1,25 @@
 /**
- * @workspace/api-client-react — Client-side Mock
+ * @workspace/api-client-react — Firebase Client Implementation
  *
- * This file replaces the generated React-Query + Express API hooks with
- * pure localStorage-backed equivalents so the app runs completely in the
- * browser with zero backend.
- *
- * When you're ready to connect Firebase (or any real backend), simply:
- *  1. Swap each hook implementation to call your Firebase service.
- *  2. Keep the exported function signatures identical.
- *  3. Remove the seed-data block — Firebase will supply real data.
+ * This file replaces the local storage backed API hooks with Cloud Firestore
+ * client calls, maintaining the identical query and mutation hook shapes.
  */
 
 import { useQuery, useMutation, type UseQueryOptions, type UseMutationOptions } from "@tanstack/react-query";
+import { db, isConfigured } from "./firebase";
+import {
+  collection,
+  doc,
+  getDocs,
+  getDoc,
+  setDoc,
+  updateDoc,
+  deleteDoc,
+  writeBatch
+} from "firebase/firestore";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Types  (mirrors the OpenAPI schema from lib/api-client-react/src/generated)
+// Types
 // ─────────────────────────────────────────────────────────────────────────────
 
 export interface Category {
@@ -129,7 +134,7 @@ export interface ServiceStats {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Seed data
+// Seed data defaults for fallback and initial populating
 // ─────────────────────────────────────────────────────────────────────────────
 
 const SEED_CATEGORIES: Category[] = [
@@ -144,31 +149,23 @@ const SEED_CATEGORIES: Category[] = [
 ];
 
 const SEED_SERVICES: Service[] = [
-  // Salon at Home
   { id: 1, categoryId: 1, categoryName: "Salon at Home", name: "Women's Haircut & Styling", description: "Professional cut, blow-dry, and styling by certified beauticians. Includes head massage.", basePrice: 499, durationMinutes: 60, rating: 4.8, reviewCount: 1243, imageUrl: null, tags: "haircut,styling,women", isFeatured: true },
   { id: 2, categoryId: 1, categoryName: "Salon at Home", name: "Facial & Cleanup", description: "Deep pore cleansing, exfoliation, and moisturizing facial. Leaves skin glowing.", basePrice: 699, durationMinutes: 75, rating: 4.7, reviewCount: 987, imageUrl: null, tags: "facial,cleanup,skincare", isFeatured: true },
   { id: 3, categoryId: 1, categoryName: "Salon at Home", name: "Manicure & Pedicure", description: "Complete nail care including filing, cuticle work, scrub, massage, and polish.", basePrice: 599, durationMinutes: 90, rating: 4.6, reviewCount: 756, imageUrl: null, tags: "nails,manicure,pedicure", isFeatured: false },
   { id: 4, categoryId: 1, categoryName: "Salon at Home", name: "Full Body Waxing", description: "Smooth and precise waxing using premium wax strips. Minimises skin irritation.", basePrice: 899, durationMinutes: 120, rating: 4.5, reviewCount: 634, imageUrl: null, tags: "waxing,body,hair removal", isFeatured: false },
-  // AC Repair
   { id: 5, categoryId: 2, categoryName: "AC Repair", name: "AC Service & Cleaning", description: "Complete AC servicing with filter cleaning, coil wash, gas level check, and performance tuning.", basePrice: 599, durationMinutes: 60, rating: 4.9, reviewCount: 2145, imageUrl: null, tags: "ac,service,cleaning", isFeatured: true },
   { id: 6, categoryId: 2, categoryName: "AC Repair", name: "AC Installation", description: "Professional AC installation with copper piping, drilling, and commissioning. Any brand.", basePrice: 1299, durationMinutes: 120, rating: 4.7, reviewCount: 876, imageUrl: null, tags: "ac,installation,split", isFeatured: false },
   { id: 7, categoryId: 2, categoryName: "AC Repair", name: "AC Gas Refilling", description: "Refrigerant top-up for optimal cooling. Includes leak detection and pressure testing.", basePrice: 799, durationMinutes: 45, rating: 4.6, reviewCount: 543, imageUrl: null, tags: "ac,gas,refrigerant", isFeatured: false },
-  // Cleaning
   { id: 8, categoryId: 3, categoryName: "Cleaning", name: "Home Deep Cleaning", description: "Comprehensive 2-5BHK deep cleaning covering kitchen, bathrooms, bedrooms, and living areas.", basePrice: 1999, durationMinutes: 240, rating: 4.8, reviewCount: 1876, imageUrl: null, tags: "cleaning,deep,home", isFeatured: true },
   { id: 9, categoryId: 3, categoryName: "Cleaning", name: "Kitchen Deep Cleaning", description: "Degreasing exhaust, chimney, countertops, cabinets, appliances, and tiles.", basePrice: 999, durationMinutes: 120, rating: 4.7, reviewCount: 1234, imageUrl: null, tags: "kitchen,cleaning,degreasing", isFeatured: true },
   { id: 10, categoryId: 3, categoryName: "Cleaning", name: "Bathroom Cleaning", description: "Scrubbing tiles, disinfecting surfaces, descaling taps, and sanitizing toilets.", basePrice: 499, durationMinutes: 60, rating: 4.6, reviewCount: 987, imageUrl: null, tags: "bathroom,sanitize,descale", isFeatured: false },
-  // Electrician
   { id: 11, categoryId: 4, categoryName: "Electrician", name: "Electrical Repair & Wiring", description: "Switch, socket, and wiring repairs. Fault diagnosis and safe rectification.", basePrice: 299, durationMinutes: 60, rating: 4.8, reviewCount: 2341, imageUrl: null, tags: "electrical,wiring,repair", isFeatured: false },
   { id: 12, categoryId: 4, categoryName: "Electrician", name: "Ceiling Fan Installation", description: "Safe installation of ceiling fans with proper earthing and load balancing.", basePrice: 399, durationMinutes: 45, rating: 4.7, reviewCount: 1543, imageUrl: null, tags: "fan,installation,electrical", isFeatured: false },
-  // Plumbing
   { id: 13, categoryId: 5, categoryName: "Plumbing", name: "Tap & Pipe Repair", description: "Fix leaking taps, broken pipes, and drainage blockages quickly and cleanly.", basePrice: 349, durationMinutes: 60, rating: 4.7, reviewCount: 1876, imageUrl: null, tags: "plumbing,tap,pipe,leak", isFeatured: false },
   { id: 14, categoryId: 5, categoryName: "Plumbing", name: "Water Heater Installation", description: "Install and commission water heaters (geyser) of any brand safely.", basePrice: 599, durationMinutes: 90, rating: 4.6, reviewCount: 876, imageUrl: null, tags: "geyser,water heater,installation", isFeatured: false },
-  // Painting
   { id: 15, categoryId: 6, categoryName: "Painting", name: "Interior Wall Painting", description: "Premium interior painting using Asian Paints / Berger. Includes putty, primer, and two coats.", basePrice: 2499, durationMinutes: 480, rating: 4.8, reviewCount: 654, imageUrl: null, tags: "painting,interior,walls", isFeatured: true },
-  // Appliance Repair
   { id: 16, categoryId: 7, categoryName: "Appliance Repair", name: "Washing Machine Repair", description: "Diagnose and fix washing machine faults. Drum, motor, pump, and board repairs.", basePrice: 499, durationMinutes: 90, rating: 4.7, reviewCount: 1123, imageUrl: null, tags: "washing machine,repair,appliance", isFeatured: false },
   { id: 17, categoryId: 7, categoryName: "Appliance Repair", name: "Refrigerator Repair", description: "Cooling issues, compressor checks, gas refill, thermostat, and door seal repairs.", basePrice: 599, durationMinutes: 60, rating: 4.6, reviewCount: 987, imageUrl: null, tags: "refrigerator,fridge,repair", isFeatured: false },
-  // Pest Control
   { id: 18, categoryId: 8, categoryName: "Pest Control", name: "General Pest Control", description: "Cockroach, ant, and silverfish treatment using safe, odorless chemicals.", basePrice: 999, durationMinutes: 60, rating: 4.5, reviewCount: 765, imageUrl: null, tags: "pest,cockroach,ant", isFeatured: false },
 ];
 
@@ -195,84 +192,74 @@ const SEED_REVIEWS: Review[] = [
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────
-// localStorage helpers
+// Offline / Unconfigured fallback variables (No localStorage!)
 // ─────────────────────────────────────────────────────────────────────────────
 
-function getBookings(): Booking[] {
+let fallbackCategories: Category[] = [...SEED_CATEGORIES];
+let fallbackServices: Service[] = [...SEED_SERVICES];
+let fallbackProfessionals: Professional[] = [...SEED_PROFESSIONALS];
+let fallbackReviews: Review[] = [...SEED_REVIEWS];
+let fallbackBookings: Booking[] = [];
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Firestore Auto-Seeding Singleton Promise
+// ─────────────────────────────────────────────────────────────────────────────
+
+let seedingPromise: Promise<void> | null = null;
+
+async function ensureSeeded(): Promise<void> {
+  if (!isConfigured) return;
+
   try {
-    return JSON.parse(localStorage.getItem("uc_bookings") || "[]");
-  } catch {
-    return [];
-  }
-}
+    const categoriesCollection = collection(db, "categories");
+    const snap = await getDocs(categoriesCollection);
 
-function saveBookings(bookings: Booking[]) {
-  localStorage.setItem("uc_bookings", JSON.stringify(bookings));
-}
+    if (snap.empty) {
+      console.log("[Firebase Seeding] Firestore is empty. Initializing with default seed data...");
+      const batch = writeBatch(db);
 
-function nextBookingId(): number {
-  const bookings = getBookings();
-  return bookings.length === 0 ? 1 : Math.max(...bookings.map((b) => b.id)) + 1;
-}
+      // Seed categories
+      SEED_CATEGORIES.forEach((cat) => {
+        batch.set(doc(db, "categories", String(cat.id)), cat);
+      });
 
-// Dynamic storage getters/setters
-export function getCategories(): Category[] {
-  try {
-    const stored = localStorage.getItem("uc_categories");
-    if (!stored) {
-      localStorage.setItem("uc_categories", JSON.stringify(SEED_CATEGORIES));
-      return SEED_CATEGORIES;
+      // Seed services
+      SEED_SERVICES.forEach((svc) => {
+        batch.set(doc(db, "services", String(svc.id)), svc);
+      });
+
+      // Seed professionals
+      SEED_PROFESSIONALS.forEach((pro) => {
+        batch.set(doc(db, "professionals", String(pro.id)), pro);
+      });
+
+      // Seed reviews
+      SEED_REVIEWS.forEach((rev) => {
+        batch.set(doc(db, "reviews", String(rev.id)), rev);
+      });
+
+      await batch.commit();
+      console.log("[Firebase Seeding] Database successfully seeded.");
     }
-    return JSON.parse(stored);
-  } catch {
-    return SEED_CATEGORIES;
+  } catch (error) {
+    console.error("[Firebase Seeding] Error seeding default data:", error);
   }
 }
 
-export function saveCategories(cats: Category[]) {
-  localStorage.setItem("uc_categories", JSON.stringify(cats));
-}
-
-export function getServices(): Service[] {
-  try {
-    const stored = localStorage.getItem("uc_services");
-    if (!stored) {
-      localStorage.setItem("uc_services", JSON.stringify(SEED_SERVICES));
-      return SEED_SERVICES;
-    }
-    return JSON.parse(stored);
-  } catch {
-    return SEED_SERVICES;
+function checkAndSeed(): Promise<void> {
+  if (!seedingPromise) {
+    seedingPromise = ensureSeeded();
   }
+  return seedingPromise;
 }
 
-export function saveServices(svcs: Service[]) {
-  localStorage.setItem("uc_services", JSON.stringify(svcs));
-}
-
-export function getProfessionals(): Professional[] {
-  try {
-    const stored = localStorage.getItem("uc_professionals");
-    if (!stored) {
-      localStorage.setItem("uc_professionals", JSON.stringify(SEED_PROFESSIONALS));
-      return SEED_PROFESSIONALS;
-    }
-    return JSON.parse(stored);
-  } catch {
-    return SEED_PROFESSIONALS;
-  }
-}
-
-export function saveProfessionals(pros: Professional[]) {
-  localStorage.setItem("uc_professionals", JSON.stringify(pros));
-}
-
+// Helper delay to mimic latency in fallback mode
 function delay(ms = 200): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Query key generators
+// Query Keys
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const getListCategoriesQueryKey = () => ["categories"] as const;
@@ -310,15 +297,20 @@ type QueryOpts<T> = { query?: Partial<UseQueryOptions<T>> };
 type MutationOpts<TData, TVariables> = { mutation?: Partial<UseMutationOptions<TData, Error, TVariables>> };
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Query hooks
+// Query Hooks
 // ─────────────────────────────────────────────────────────────────────────────
 
 export function useListCategories(opts?: QueryOpts<Category[]>) {
   return useQuery<Category[]>({
     queryKey: getListCategoriesQueryKey(),
     queryFn: async () => {
-      await delay();
-      return getCategories();
+      if (!isConfigured) {
+        await delay();
+        return fallbackCategories;
+      }
+      await checkAndSeed();
+      const snap = await getDocs(collection(db, "categories"));
+      return snap.docs.map((d) => d.data() as Category);
     },
     ...opts?.query,
   });
@@ -331,8 +323,16 @@ export function useListServices(
   return useQuery<Service[]>({
     queryKey: getListServicesQueryKey(params),
     queryFn: async () => {
-      await delay();
-      let results = getServices();
+      let results: Service[] = [];
+      if (!isConfigured) {
+        await delay();
+        results = fallbackServices;
+      } else {
+        await checkAndSeed();
+        const snap = await getDocs(collection(db, "services"));
+        results = snap.docs.map((d) => d.data() as Service);
+      }
+
       if (params?.categoryId) {
         results = results.filter((s) => s.categoryId === params.categoryId);
       }
@@ -354,8 +354,16 @@ export function useListFeaturedServices(opts?: QueryOpts<Service[]>) {
   return useQuery<Service[]>({
     queryKey: getListFeaturedServicesQueryKey(),
     queryFn: async () => {
-      await delay();
-      return getServices().filter((s) => s.isFeatured).sort((a, b) => b.rating - a.rating);
+      let results: Service[] = [];
+      if (!isConfigured) {
+        await delay();
+        results = fallbackServices;
+      } else {
+        await checkAndSeed();
+        const snap = await getDocs(collection(db, "services"));
+        results = snap.docs.map((d) => d.data() as Service);
+      }
+      return results.filter((s) => s.isFeatured).sort((a, b) => b.rating - a.rating);
     },
     ...opts?.query,
   });
@@ -365,10 +373,16 @@ export function useGetService(id: number, opts?: QueryOpts<Service>) {
   return useQuery<Service>({
     queryKey: getGetServiceQueryKey(id),
     queryFn: async () => {
-      await delay();
-      const svc = getServices().find((s) => s.id === id);
-      if (!svc) throw new Error("Service not found");
-      return svc;
+      if (!isConfigured) {
+        await delay();
+        const svc = fallbackServices.find((s) => s.id === id);
+        if (!svc) throw new Error("Service not found");
+        return svc;
+      }
+      await checkAndSeed();
+      const docSnap = await getDoc(doc(db, "services", String(id)));
+      if (!docSnap.exists()) throw new Error("Service not found");
+      return docSnap.data() as Service;
     },
     enabled: !!id,
     ...opts?.query,
@@ -382,8 +396,16 @@ export function useListProfessionals(
   return useQuery<Professional[]>({
     queryKey: getListProfessionalsQueryKey(params),
     queryFn: async () => {
-      await delay();
-      let pros = getProfessionals();
+      let pros: Professional[] = [];
+      if (!isConfigured) {
+        await delay();
+        pros = fallbackProfessionals;
+      } else {
+        await checkAndSeed();
+        const snap = await getDocs(collection(db, "professionals"));
+        pros = snap.docs.map((d) => d.data() as Professional);
+      }
+
       if (params?.categoryId) {
         const catIdStr = String(params.categoryId);
         pros = pros.filter((p) => p.categoryIds?.split(",").includes(catIdStr));
@@ -398,10 +420,16 @@ export function useGetProfessional(id: number, opts?: QueryOpts<Professional>) {
   return useQuery<Professional>({
     queryKey: getGetProfessionalQueryKey(id),
     queryFn: async () => {
-      await delay();
-      const pro = getProfessionals().find((p) => p.id === id);
-      if (!pro) throw new Error("Professional not found");
-      return pro;
+      if (!isConfigured) {
+        await delay();
+        const pro = fallbackProfessionals.find((p) => p.id === id);
+        if (!pro) throw new Error("Professional not found");
+        return pro;
+      }
+      await checkAndSeed();
+      const docSnap = await getDoc(doc(db, "professionals", String(id)));
+      if (!docSnap.exists()) throw new Error("Professional not found");
+      return docSnap.data() as Professional;
     },
     enabled: !!id,
     ...opts?.query,
@@ -415,8 +443,16 @@ export function useListBookings(
   return useQuery<Booking[]>({
     queryKey: getListBookingsQueryKey(params || {}),
     queryFn: async () => {
-      await delay();
-      let bookings = getBookings();
+      let bookings: Booking[] = [];
+      if (!isConfigured) {
+        await delay();
+        bookings = fallbackBookings;
+      } else {
+        await checkAndSeed();
+        const snap = await getDocs(collection(db, "bookings"));
+        bookings = snap.docs.map((d) => d.data() as Booking);
+      }
+
       if (params?.status) {
         bookings = bookings.filter((b) => b.status === params.status);
       }
@@ -442,8 +478,16 @@ export function useListReviews(
   return useQuery<Review[]>({
     queryKey: getListReviewsQueryKey(params),
     queryFn: async () => {
-      await delay();
-      let reviews = SEED_REVIEWS;
+      let reviews: Review[] = [];
+      if (!isConfigured) {
+        await delay();
+        reviews = fallbackReviews;
+      } else {
+        await checkAndSeed();
+        const snap = await getDocs(collection(db, "reviews"));
+        reviews = snap.docs.map((d) => d.data() as Review);
+      }
+
       if (params?.serviceId) {
         reviews = reviews.filter((r) => r.serviceId === params.serviceId);
       }
@@ -460,10 +504,25 @@ export function useGetDashboardStats(opts?: QueryOpts<DashboardStats>) {
   return useQuery<DashboardStats>({
     queryKey: getGetDashboardStatsQueryKey(),
     queryFn: async () => {
-      await delay();
-      const bookings = getBookings();
-      const pros = getProfessionals();
-      const svcs = getServices();
+      let bookings: Booking[] = [];
+      let pros: Professional[] = [];
+      let svcs: Service[] = [];
+
+      if (!isConfigured) {
+        await delay();
+        bookings = fallbackBookings;
+        pros = fallbackProfessionals;
+        svcs = fallbackServices;
+      } else {
+        await checkAndSeed();
+        const bookingsSnap = await getDocs(collection(db, "bookings"));
+        bookings = bookingsSnap.docs.map((d) => d.data() as Booking);
+        const prosSnap = await getDocs(collection(db, "professionals"));
+        pros = prosSnap.docs.map((d) => d.data() as Professional);
+        const svcsSnap = await getDocs(collection(db, "services"));
+        svcs = svcsSnap.docs.map((d) => d.data() as Service);
+      }
+
       const completed = bookings.filter((b) => b.status === "completed");
       const pending = bookings.filter((b) => b.status === "pending");
       const cancelled = bookings.filter((b) => b.status === "cancelled");
@@ -490,8 +549,16 @@ export function useGetRecentBookings(opts?: QueryOpts<Booking[]>) {
   return useQuery<Booking[]>({
     queryKey: getGetRecentBookingsQueryKey(),
     queryFn: async () => {
-      await delay();
-      return getBookings()
+      let bookings: Booking[] = [];
+      if (!isConfigured) {
+        await delay();
+        bookings = fallbackBookings;
+      } else {
+        await checkAndSeed();
+        const snap = await getDocs(collection(db, "bookings"));
+        bookings = snap.docs.map((d) => d.data() as Booking);
+      }
+      return bookings
         .sort(
           (a, b) =>
             new Date(b.createdAt ?? 0).getTime() - new Date(a.createdAt ?? 0).getTime()
@@ -506,14 +573,25 @@ export function useGetTopServices(opts?: QueryOpts<ServiceStats[]>) {
   return useQuery<ServiceStats[]>({
     queryKey: getGetTopServicesQueryKey(),
     queryFn: async () => {
-      await delay();
-      const bookings = getBookings();
-      const svcs = getServices();
+      let bookings: Booking[] = [];
+      let svcs: Service[] = [];
+
+      if (!isConfigured) {
+        await delay();
+        bookings = fallbackBookings;
+        svcs = fallbackServices;
+      } else {
+        await checkAndSeed();
+        const bookingsSnap = await getDocs(collection(db, "bookings"));
+        bookings = bookingsSnap.docs.map((d) => d.data() as Booking);
+        const svcsSnap = await getDocs(collection(db, "services"));
+        svcs = svcsSnap.docs.map((d) => d.data() as Service);
+      }
+
       const countMap: Record<number, number> = {};
       bookings.forEach((b) => {
         countMap[b.serviceId] = (countMap[b.serviceId] ?? 0) + 1;
       });
-      // Add some demo top-service data seeded from SEED_SERVICES
       const topSeed: ServiceStats[] = svcs.slice(0, 5).map((s, i) => ({
         serviceId: s.id,
         serviceName: s.name,
@@ -529,7 +607,7 @@ export function useGetTopServices(opts?: QueryOpts<ServiceStats[]>) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Mutation hooks
+// Mutation Hooks
 // ─────────────────────────────────────────────────────────────────────────────
 
 export function useCreateBooking(
@@ -537,16 +615,34 @@ export function useCreateBooking(
 ) {
   return useMutation<Booking, Error, { data: BookingInput }>({
     mutationFn: async ({ data }) => {
-      await delay(400);
-      const services = getServices();
-      const professionals = getProfessionals();
+      let services: Service[] = [];
+      let professionals: Professional[] = [];
+      let bookings: Booking[] = [];
+
+      if (!isConfigured) {
+        await delay(300);
+        services = fallbackServices;
+        professionals = fallbackProfessionals;
+        bookings = fallbackBookings;
+      } else {
+        await checkAndSeed();
+        const svcsSnap = await getDocs(collection(db, "services"));
+        services = svcsSnap.docs.map((d) => d.data() as Service);
+        const prosSnap = await getDocs(collection(db, "professionals"));
+        professionals = prosSnap.docs.map((d) => d.data() as Professional);
+        const bookingsSnap = await getDocs(collection(db, "bookings"));
+        bookings = bookingsSnap.docs.map((d) => d.data() as Booking);
+      }
+
       const service = services.find((s) => s.id === data.serviceId);
       const professional = data.professionalId
         ? professionals.find((p) => p.id === data.professionalId)
         : professionals.find((p) => p.isAvailable);
 
+      const nextId = bookings.length === 0 ? 1 : Math.max(...bookings.map((b) => b.id)) + 1;
+
       const booking: Booking = {
-        id: nextBookingId(),
+        id: nextId,
         serviceId: data.serviceId,
         serviceName: service?.name ?? "Unknown Service",
         professionalId: professional?.id ?? null,
@@ -560,9 +656,12 @@ export function useCreateBooking(
         notes: data.notes ?? null,
         createdAt: new Date().toISOString(),
       };
-      const bookings = getBookings();
-      bookings.push(booking);
-      saveBookings(bookings);
+
+      if (!isConfigured) {
+        fallbackBookings.push(booking);
+      } else {
+        await setDoc(doc(db, "bookings", String(nextId)), booking);
+      }
       return booking;
     },
     ...opts?.mutation,
@@ -574,13 +673,21 @@ export function useCancelBooking(
 ) {
   return useMutation<Booking, Error, { id: number }>({
     mutationFn: async ({ id }) => {
-      await delay(300);
-      const bookings = getBookings();
-      const idx = bookings.findIndex((b) => b.id === id);
-      if (idx === -1) throw new Error("Booking not found");
-      bookings[idx].status = "cancelled";
-      saveBookings(bookings);
-      return bookings[idx];
+      if (!isConfigured) {
+        await delay(200);
+        const idx = fallbackBookings.findIndex((b) => b.id === id);
+        if (idx === -1) throw new Error("Booking not found");
+        fallbackBookings[idx].status = "cancelled";
+        return fallbackBookings[idx];
+      }
+      await checkAndSeed();
+      const docRef = doc(db, "bookings", String(id));
+      const docSnap = await getDoc(docRef);
+      if (!docSnap.exists()) throw new Error("Booking not found");
+      const booking = docSnap.data() as Booking;
+      booking.status = "cancelled";
+      await updateDoc(docRef, { status: "cancelled" });
+      return booking;
     },
     ...opts?.mutation,
   });
@@ -591,13 +698,21 @@ export function useUpdateBookingStatus(
 ) {
   return useMutation<Booking, Error, { id: number; status: BookingStatus }>({
     mutationFn: async ({ id, status }) => {
-      await delay(300);
-      const bookings = getBookings();
-      const idx = bookings.findIndex((b) => b.id === id);
-      if (idx === -1) throw new Error("Booking not found");
-      bookings[idx].status = status;
-      saveBookings(bookings);
-      return bookings[idx];
+      if (!isConfigured) {
+        await delay(200);
+        const idx = fallbackBookings.findIndex((b) => b.id === id);
+        if (idx === -1) throw new Error("Booking not found");
+        fallbackBookings[idx].status = status;
+        return fallbackBookings[idx];
+      }
+      await checkAndSeed();
+      const docRef = doc(db, "bookings", String(id));
+      const docSnap = await getDoc(docRef);
+      if (!docSnap.exists()) throw new Error("Booking not found");
+      const booking = docSnap.data() as Booking;
+      booking.status = status;
+      await updateDoc(docRef, { status });
+      return booking;
     },
     ...opts?.mutation,
   });
@@ -609,23 +724,40 @@ export function useCreateService(
 ) {
   return useMutation<Service, Error, { data: Omit<Service, "id" | "reviewCount" | "rating"> }>({
     mutationFn: async ({ data }) => {
-      await delay(300);
-      const svcs = getServices();
-      const newId = svcs.length === 0 ? 1 : Math.max(...svcs.map((s) => s.id)) + 1;
-      const categories = getCategories();
-      const cat = categories.find(c => c.id === data.categoryId);
-      
+      let nextId = 1;
+      let catName = "Unknown";
+
+      if (!isConfigured) {
+        await delay(200);
+        nextId = fallbackServices.length === 0 ? 1 : Math.max(...fallbackServices.map((s) => s.id)) + 1;
+        const cat = fallbackCategories.find((c) => c.id === data.categoryId);
+        catName = cat?.name ?? "Unknown";
+      } else {
+        await checkAndSeed();
+        const svcsSnap = await getDocs(collection(db, "services"));
+        const svcs = svcsSnap.docs.map((d) => d.data() as Service);
+        nextId = svcs.length === 0 ? 1 : Math.max(...svcs.map((s) => s.id)) + 1;
+
+        const catSnap = await getDoc(doc(db, "categories", String(data.categoryId)));
+        if (catSnap.exists()) {
+          catName = (catSnap.data() as Category).name;
+        }
+      }
+
       const newService: Service = {
         ...data,
-        id: newId,
-        categoryName: cat?.name ?? "Unknown",
+        id: nextId,
+        categoryName: catName,
         rating: 5.0,
         reviewCount: 0,
         imageUrl: data.imageUrl ?? null,
       };
-      
-      svcs.push(newService);
-      saveServices(svcs);
+
+      if (!isConfigured) {
+        fallbackServices.push(newService);
+      } else {
+        await setDoc(doc(db, "services", String(nextId)), newService);
+      }
       return newService;
     },
     ...opts?.mutation,
@@ -637,14 +769,21 @@ export function useUpdateService(
 ) {
   return useMutation<Service, Error, { id: number; data: Partial<Service> }>({
     mutationFn: async ({ id, data }) => {
-      await delay(300);
-      const svcs = getServices();
-      const idx = svcs.findIndex((s) => s.id === id);
-      if (idx === -1) throw new Error("Service not found");
-      
-      svcs[idx] = { ...svcs[idx], ...data };
-      saveServices(svcs);
-      return svcs[idx];
+      if (!isConfigured) {
+        await delay(200);
+        const idx = fallbackServices.findIndex((s) => s.id === id);
+        if (idx === -1) throw new Error("Service not found");
+        fallbackServices[idx] = { ...fallbackServices[idx], ...data };
+        return fallbackServices[idx];
+      }
+      await checkAndSeed();
+      const docRef = doc(db, "services", String(id));
+      const docSnap = await getDoc(docRef);
+      if (!docSnap.exists()) throw new Error("Service not found");
+      const service = docSnap.data() as Service;
+      const updated = { ...service, ...data };
+      await updateDoc(docRef, data);
+      return updated;
     },
     ...opts?.mutation,
   });
@@ -655,10 +794,13 @@ export function useDeleteService(
 ) {
   return useMutation<boolean, Error, { id: number }>({
     mutationFn: async ({ id }) => {
-      await delay(300);
-      const svcs = getServices();
-      const filtered = svcs.filter((s) => s.id !== id);
-      saveServices(filtered);
+      if (!isConfigured) {
+        await delay(200);
+        fallbackServices = fallbackServices.filter((s) => s.id !== id);
+        return true;
+      }
+      await checkAndSeed();
+      await deleteDoc(doc(db, "services", String(id)));
       return true;
     },
     ...opts?.mutation,
@@ -671,21 +813,31 @@ export function useCreateProfessional(
 ) {
   return useMutation<Professional, Error, { data: Omit<Professional, "id" | "completedJobs" | "rating" | "reviewCount"> }>({
     mutationFn: async ({ data }) => {
-      await delay(300);
-      const pros = getProfessionals();
-      const newId = pros.length === 0 ? 1 : Math.max(...pros.map((p) => p.id)) + 1;
-      
+      let nextId = 1;
+      if (!isConfigured) {
+        await delay(200);
+        nextId = fallbackProfessionals.length === 0 ? 1 : Math.max(...fallbackProfessionals.map((p) => p.id)) + 1;
+      } else {
+        await checkAndSeed();
+        const snap = await getDocs(collection(db, "professionals"));
+        const pros = snap.docs.map((d) => d.data() as Professional);
+        nextId = pros.length === 0 ? 1 : Math.max(...pros.map((p) => p.id)) + 1;
+      }
+
       const newPro: Professional = {
         ...data,
-        id: newId,
+        id: nextId,
         rating: 5.0,
         reviewCount: 0,
         completedJobs: 0,
         avatarUrl: data.avatarUrl ?? null,
       };
-      
-      pros.push(newPro);
-      saveProfessionals(pros);
+
+      if (!isConfigured) {
+        fallbackProfessionals.push(newPro);
+      } else {
+        await setDoc(doc(db, "professionals", String(nextId)), newPro);
+      }
       return newPro;
     },
     ...opts?.mutation,
@@ -697,14 +849,21 @@ export function useUpdateProfessional(
 ) {
   return useMutation<Professional, Error, { id: number; data: Partial<Professional> }>({
     mutationFn: async ({ id, data }) => {
-      await delay(300);
-      const pros = getProfessionals();
-      const idx = pros.findIndex((p) => p.id === id);
-      if (idx === -1) throw new Error("Professional not found");
-      
-      pros[idx] = { ...pros[idx], ...data };
-      saveProfessionals(pros);
-      return pros[idx];
+      if (!isConfigured) {
+        await delay(200);
+        const idx = fallbackProfessionals.findIndex((p) => p.id === id);
+        if (idx === -1) throw new Error("Professional not found");
+        fallbackProfessionals[idx] = { ...fallbackProfessionals[idx], ...data };
+        return fallbackProfessionals[idx];
+      }
+      await checkAndSeed();
+      const docRef = doc(db, "professionals", String(id));
+      const docSnap = await getDoc(docRef);
+      if (!docSnap.exists()) throw new Error("Professional not found");
+      const pro = docSnap.data() as Professional;
+      const updated = { ...pro, ...data };
+      await updateDoc(docRef, data);
+      return updated;
     },
     ...opts?.mutation,
   });
@@ -716,22 +875,31 @@ export function useCreateCategory(
 ) {
   return useMutation<Category, Error, { data: Omit<Category, "id" | "serviceCount"> }>({
     mutationFn: async ({ data }) => {
-      await delay(300);
-      const cats = getCategories();
-      const newId = cats.length === 0 ? 1 : Math.max(...cats.map((c) => c.id)) + 1;
-      
+      let nextId = 1;
+      if (!isConfigured) {
+        await delay(200);
+        nextId = fallbackCategories.length === 0 ? 1 : Math.max(...fallbackCategories.map((c) => c.id)) + 1;
+      } else {
+        await checkAndSeed();
+        const catsSnap = await getDocs(collection(db, "categories"));
+        const cats = catsSnap.docs.map((d) => d.data() as Category);
+        nextId = cats.length === 0 ? 1 : Math.max(...cats.map((c) => c.id)) + 1;
+      }
+
       const newCat: Category = {
         ...data,
-        id: newId,
+        id: nextId,
         serviceCount: 0,
         imageUrl: data.imageUrl ?? null,
       };
-      
-      cats.push(newCat);
-      saveCategories(cats);
+
+      if (!isConfigured) {
+        fallbackCategories.push(newCat);
+      } else {
+        await setDoc(doc(db, "categories", String(nextId)), newCat);
+      }
       return newCat;
     },
     ...opts?.mutation,
   });
 }
-
