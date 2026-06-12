@@ -13,8 +13,8 @@ export default function CategoriesPage() {
   });
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-12">
-      <div className="mb-10">
+    <div className="max-w-7xl mx-auto px-4 py-12 overflow-hidden">
+      <div className="mb-10" data-aos="fade-down">
         <h1 className="text-3xl font-bold text-foreground">All Service Categories</h1>
         <p className="text-muted-foreground mt-2">
           Browse our wide range of home services. All professionals are verified and trained.
@@ -31,7 +31,7 @@ export default function CategoriesPage() {
                 <Skeleton className="h-4 w-1/2" />
               </div>
             ))
-          : categories?.map((cat) => {
+          : categories?.map((cat, i) => {
               const Icon = iconMap[cat.icon] ?? Settings;
               return (
                 <Link
@@ -39,7 +39,11 @@ export default function CategoriesPage() {
                   href={`/services?categoryId=${cat.id}`}
                   data-testid={`card-category-${cat.id}`}
                 >
-                  <div className="rounded-2xl border border-border bg-card p-6 hover:shadow-lg hover:border-primary/40 transition-all cursor-pointer group h-full flex flex-col">
+                  <div 
+                    className="rounded-2xl border border-border bg-card p-6 hover:shadow-lg hover:border-primary/40 transition-all cursor-pointer group h-full flex flex-col"
+                    data-aos="fade-up"
+                    data-aos-delay={(i % 4) * 100}
+                  >
                     <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
                       <Icon className="w-7 h-7 text-primary" />
                     </div>

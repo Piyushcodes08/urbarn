@@ -1,4 +1,4 @@
-import { Switch, Route, Router as WouterRouter } from "wouter";
+import { Switch, Route, Router as WouterRouter, useLocation } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -14,8 +14,35 @@ import BookingsPage from "@/pages/BookingsPage";
 import BookingNewPage from "@/pages/BookingNewPage";
 import DashboardPage from "@/pages/DashboardPage";
 import NotFound from "@/pages/not-found";
+import { useEffect } from "react";
+import AOS from "aos";
+import "aos/dist/aos.css";
 
 const queryClient = new QueryClient();
+
+function AOSInitializer() {
+  const [location] = useLocation();
+
+  useEffect(() => {
+    AOS.init({
+      duration: 800,
+      easing: "ease-out-cubic",
+      once: true,
+      offset: 50,
+      delay: 50,
+    });
+  }, []);
+
+  useEffect(() => {
+    // Wait a brief moment for the route components to render, then refresh animations
+    const timer = setTimeout(() => {
+      AOS.refresh();
+    }, 100);
+    return () => clearTimeout(timer);
+  }, [location]);
+
+  return null;
+}
 
 function Router() {
   return (
@@ -39,6 +66,7 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
+          <AOSInitializer />
           <div className="min-h-screen flex flex-col bg-background">
             <Navbar />
             <main className="flex-grow">

@@ -14,8 +14,8 @@ export default function ProfessionalsPage() {
   });
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-12">
-      <div className="mb-10">
+    <div className="max-w-7xl mx-auto px-4 py-12 overflow-hidden">
+      <div className="mb-10" data-aos="fade-down">
         <h1 className="text-3xl font-bold text-foreground">Our Professionals</h1>
         <p className="text-muted-foreground mt-2">
           Every professional is background-checked, trained, and rated by real customers.
@@ -23,7 +23,7 @@ export default function ProfessionalsPage() {
       </div>
 
       {/* Stats banner */}
-      <div className="grid grid-cols-3 gap-4 mb-10 bg-primary/5 rounded-2xl p-6 border border-primary/10">
+      <div className="grid grid-cols-3 gap-4 mb-10 bg-primary/5 rounded-2xl p-6 border border-primary/10" data-aos="fade-up">
         <div className="text-center">
           <p className="text-2xl font-bold text-primary">500+</p>
           <p className="text-xs text-muted-foreground mt-1">Professionals</p>
@@ -53,9 +53,13 @@ export default function ProfessionalsPage() {
                 <Skeleton className="h-3 w-3/4" />
               </div>
             ))
-          : professionals?.map((pro) => (
+          : professionals?.map((pro, i) => (
               <Link key={pro.id} href={`/professionals/${pro.id}`} data-testid={`card-professional-${pro.id}`}>
-                <div className="rounded-2xl border border-border bg-card p-6 hover:shadow-lg hover:border-primary/30 transition-all cursor-pointer group h-full flex flex-col">
+                <div 
+                  className="rounded-2xl border border-border bg-card p-6 hover:shadow-lg hover:border-primary/30 transition-all cursor-pointer group h-full flex flex-col"
+                  data-aos="fade-up"
+                  data-aos-delay={(i % 3) * 100}
+                >
                   <div className="flex items-start gap-4 mb-4">
                     <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center flex-shrink-0 text-2xl font-bold text-primary">
                       {pro.name.charAt(0)}

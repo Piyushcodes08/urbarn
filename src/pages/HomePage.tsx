@@ -17,9 +17,9 @@ const iconMap: Record<string, React.ElementType> = {
   Scissors, Sparkles, Wind, Zap, Droplets, PaintBucket, Settings, Bug,
 };
 
-function TrustBadge({ icon, title, desc }: { icon: React.ReactNode; title: string; desc: string }) {
+function TrustBadge({ icon, title, desc, delay }: { icon: React.ReactNode; title: string; desc: string; delay?: number }) {
   return (
-    <div className="flex items-start gap-3 p-4">
+    <div className="flex items-start gap-3 p-4" data-aos="fade-up" data-aos-delay={delay}>
       <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
         {icon}
       </div>
@@ -49,18 +49,18 @@ export default function HomePage() {
         <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_30%_70%,hsl(25,80%,55%)_0%,transparent_60%)]" />
         <div className="relative max-w-7xl mx-auto">
           <div className="max-w-2xl">
-            <Badge className="mb-4 bg-white/20 text-primary-foreground border-white/30 hover:bg-white/30">
+            <Badge className="mb-4 bg-white/20 text-primary-foreground border-white/30 hover:bg-white/30" data-aos="fade-down">
               Trusted by 10,000+ customers
             </Badge>
-            <h1 className="text-4xl md:text-5xl font-bold leading-tight mb-4">
+            <h1 className="text-4xl md:text-5xl font-bold leading-tight mb-4" data-aos="fade-up" data-aos-delay="100">
               Home services,<br />
               <span className="text-[hsl(25,80%,70%)]">done right.</span>
             </h1>
-            <p className="text-lg text-primary-foreground/80 mb-8 leading-relaxed">
+            <p className="text-lg text-primary-foreground/80 mb-8 leading-relaxed" data-aos="fade-up" data-aos-delay="200">
               Verified professionals for cleaning, repair, beauty, and more — 
               at your doorstep, on your schedule.
             </p>
-            <div className="flex flex-col sm:flex-row gap-3">
+            <div className="flex flex-col sm:flex-row gap-3" data-aos="fade-up" data-aos-delay="300">
               <Link href="/services">
                 <Button size="lg" className="bg-white text-primary hover:bg-white/90 font-semibold" data-testid="button-explore-services">
                   Explore Services
@@ -78,24 +78,24 @@ export default function HomePage() {
       </section>
 
       {/* Trust indicators */}
-      <section className="bg-card border-b border-border">
+      <section className="bg-card border-b border-border overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 grid grid-cols-2 md:grid-cols-4 divide-x divide-border">
-          <TrustBadge icon={<Shield className="w-5 h-5" />} title="Verified Pros" desc="Background checked" />
-          <TrustBadge icon={<Clock className="w-5 h-5" />} title="On-Time" desc="Guaranteed arrival" />
-          <TrustBadge icon={<ThumbsUp className="w-5 h-5" />} title="Satisfaction" desc="100% guarantee" />
-          <TrustBadge icon={<Award className="w-5 h-5" />} title="Trained Staff" desc="Certified professionals" />
+          <TrustBadge icon={<Shield className="w-5 h-5" />} title="Verified Pros" desc="Background checked" delay={100} />
+          <TrustBadge icon={<Clock className="w-5 h-5" />} title="On-Time" desc="Guaranteed arrival" delay={200} />
+          <TrustBadge icon={<ThumbsUp className="w-5 h-5" />} title="Satisfaction" desc="100% guarantee" delay={300} />
+          <TrustBadge icon={<Award className="w-5 h-5" />} title="Trained Staff" desc="Certified professionals" delay={400} />
         </div>
       </section>
 
       {/* Categories */}
-      <section className="max-w-7xl mx-auto px-4 py-14">
+      <section className="max-w-7xl mx-auto px-4 py-14 overflow-hidden">
         <div className="flex items-center justify-between mb-8">
-          <div>
+          <div data-aos="fade-right">
             <h2 className="text-2xl font-bold text-foreground">Browse by Category</h2>
             <p className="text-muted-foreground text-sm mt-1">Find the right service for your home</p>
           </div>
           <Link href="/categories">
-            <Button variant="outline" size="sm" data-testid="link-all-categories">
+            <Button variant="outline" size="sm" data-testid="link-all-categories" data-aos="fade-left">
               View All <ArrowRight className="ml-1 w-4 h-4" />
             </Button>
           </Link>
@@ -108,7 +108,7 @@ export default function HomePage() {
                   <Skeleton className="h-3 w-16" />
                 </div>
               ))
-            : categories?.map((cat) => {
+            : categories?.map((cat, i) => {
                 const Icon = iconMap[cat.icon] ?? Settings;
                 return (
                   <Link
@@ -116,6 +116,8 @@ export default function HomePage() {
                     href={`/services?categoryId=${cat.id}`}
                     data-testid={`card-category-${cat.id}`}
                     className="flex flex-col items-center gap-2 p-3 rounded-xl border border-border bg-card hover:border-primary/40 hover:bg-primary/5 transition-all cursor-pointer group"
+                    data-aos="zoom-in"
+                    data-aos-delay={(i % 8) * 50}
                   >
                     <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
                       <Icon className="w-5 h-5 text-primary" />
@@ -128,15 +130,15 @@ export default function HomePage() {
       </section>
 
       {/* Featured Services */}
-      <section className="bg-muted/30 py-14 px-4">
+      <section className="bg-muted/30 py-14 px-4 overflow-hidden">
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center justify-between mb-8">
-            <div>
+            <div data-aos="fade-right">
               <h2 className="text-2xl font-bold text-foreground">Most Popular Services</h2>
               <p className="text-muted-foreground text-sm mt-1">Highly rated by customers</p>
             </div>
             <Link href="/services">
-              <Button variant="outline" size="sm" data-testid="link-all-services">
+              <Button variant="outline" size="sm" data-testid="link-all-services" data-aos="fade-left">
                 All Services <ArrowRight className="ml-1 w-4 h-4" />
               </Button>
             </Link>
@@ -153,9 +155,13 @@ export default function HomePage() {
                     </div>
                   </div>
                 ))
-              : featured?.slice(0, 4).map((svc) => (
+              : featured?.slice(0, 4).map((svc, i) => (
                   <Link key={svc.id} href={`/services/${svc.id}`} data-testid={`card-service-${svc.id}`}>
-                    <div className="rounded-xl border border-border bg-card overflow-hidden hover:shadow-md hover:border-primary/30 transition-all h-full flex flex-col group cursor-pointer">
+                    <div 
+                      className="rounded-xl border border-border bg-card overflow-hidden hover:shadow-md hover:border-primary/30 transition-all h-full flex flex-col group cursor-pointer"
+                      data-aos="fade-up"
+                      data-aos-delay={i * 100}
+                    >
                       <div className="h-40 bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
                         <Settings className="w-12 h-12 text-primary/40 group-hover:scale-110 transition-transform" />
                       </div>
@@ -178,14 +184,14 @@ export default function HomePage() {
       </section>
 
       {/* Top Professionals */}
-      <section className="max-w-7xl mx-auto px-4 py-14">
+      <section className="max-w-7xl mx-auto px-4 py-14 overflow-hidden">
         <div className="flex items-center justify-between mb-8">
-          <div>
+          <div data-aos="fade-right">
             <h2 className="text-2xl font-bold text-foreground">Top Professionals</h2>
             <p className="text-muted-foreground text-sm mt-1">Handpicked, trained, and verified</p>
           </div>
           <Link href="/professionals">
-            <Button variant="outline" size="sm" data-testid="link-all-professionals">
+            <Button variant="outline" size="sm" data-testid="link-all-professionals" data-aos="fade-left">
               All Pros <ArrowRight className="ml-1 w-4 h-4" />
             </Button>
           </Link>
@@ -199,9 +205,13 @@ export default function HomePage() {
                   <Skeleton className="h-3 w-full" />
                 </div>
               ))
-            : professionals?.slice(0, 4).map((pro) => (
+            : professionals?.slice(0, 4).map((pro, i) => (
                 <Link key={pro.id} href={`/professionals/${pro.id}`} data-testid={`card-professional-${pro.id}`}>
-                  <div className="rounded-xl border border-border bg-card p-4 hover:shadow-md hover:border-primary/30 transition-all cursor-pointer group">
+                  <div 
+                    className="rounded-xl border border-border bg-card p-4 hover:shadow-md hover:border-primary/30 transition-all cursor-pointer group"
+                    data-aos="fade-up"
+                    data-aos-delay={i * 100}
+                  >
                     <div className="flex items-start gap-3 mb-3">
                       <div className="w-14 h-14 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center flex-shrink-0">
                         <span className="text-xl font-bold text-primary">{pro.name.charAt(0)}</span>
@@ -232,15 +242,15 @@ export default function HomePage() {
       </section>
 
       {/* Promo Banner */}
-      <section className="bg-gradient-to-r from-accent to-[hsl(25,70%,45%)] py-12 px-4">
+      <section className="bg-gradient-to-r from-accent to-[hsl(25,70%,45%)] py-12 px-4 overflow-hidden">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6 text-white">
-          <div>
+          <div data-aos="fade-right">
             <p className="text-sm font-semibold uppercase tracking-wider opacity-80">Limited Time Offer</p>
             <h3 className="text-2xl font-bold mt-1">First service at 20% off</h3>
             <p className="text-white/80 mt-1 text-sm">Use code WELCOME20 at checkout</p>
           </div>
           <Link href="/bookings/new">
-            <Button size="lg" className="bg-white text-accent hover:bg-white/90 font-semibold" data-testid="button-claim-offer">
+            <Button size="lg" className="bg-white text-accent hover:bg-white/90 font-semibold" data-testid="button-claim-offer" data-aos="fade-left">
               Claim Offer
             </Button>
           </Link>

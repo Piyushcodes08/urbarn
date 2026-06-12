@@ -26,15 +26,21 @@ function StatCard({
   sub,
   icon,
   accent,
+  delay,
 }: {
   title: string;
   value: string | number;
   sub?: string;
   icon: React.ReactNode;
   accent?: boolean;
+  delay?: number;
 }) {
   return (
-    <div className={`rounded-2xl border p-5 ${accent ? "bg-primary text-primary-foreground border-primary" : "bg-card border-border"}`}>
+    <div 
+      className={`rounded-2xl border p-5 ${accent ? "bg-primary text-primary-foreground border-primary" : "bg-card border-border"}`}
+      data-aos="fade-up"
+      data-aos-delay={delay}
+    >
       <div className={`flex items-center justify-between mb-3 ${accent ? "text-primary-foreground/70" : "text-muted-foreground"}`}>
         <span className="text-sm font-medium">{title}</span>
         <div className={`w-8 h-8 rounded-full flex items-center justify-center ${accent ? "bg-white/20" : "bg-primary/10"}`}>
@@ -59,8 +65,8 @@ export default function DashboardPage() {
   });
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-12">
-      <div className="mb-10">
+    <div className="max-w-7xl mx-auto px-4 py-12 overflow-hidden">
+      <div className="mb-10" data-aos="fade-down">
         <h1 className="text-3xl font-bold text-foreground">Platform Dashboard</h1>
         <p className="text-muted-foreground mt-1">Live overview of service activity and metrics</p>
       </div>
@@ -77,24 +83,28 @@ export default function DashboardPage() {
               sub="All time"
               icon={<Briefcase className="w-4 h-4" />}
               accent
+              delay={50}
             />
             <StatCard
               title="Completed"
               value={stats?.completedBookings ?? 0}
               sub={`${stats?.totalBookings ? Math.round((stats.completedBookings / stats.totalBookings) * 100) : 0}% completion rate`}
               icon={<CheckCircle className="w-4 h-4" />}
+              delay={100}
             />
             <StatCard
               title="Pending"
               value={stats?.pendingBookings ?? 0}
               sub="Awaiting service"
               icon={<Clock className="w-4 h-4" />}
+              delay={150}
             />
             <StatCard
               title="Cancelled"
               value={stats?.cancelledBookings ?? 0}
               sub="Cancelled bookings"
               icon={<XCircle className="w-4 h-4" />}
+              delay={200}
             />
             <StatCard
               title="Revenue"
@@ -102,24 +112,28 @@ export default function DashboardPage() {
               sub="From completed jobs"
               icon={<IndianRupee className="w-4 h-4" />}
               accent
+              delay={250}
             />
             <StatCard
               title="Professionals"
               value={stats?.totalProfessionals ?? 0}
               sub="Active on platform"
               icon={<Users className="w-4 h-4" />}
+              delay={300}
             />
             <StatCard
               title="Services"
               value={stats?.totalServices ?? 0}
               sub="Available services"
               icon={<TrendingUp className="w-4 h-4" />}
+              delay={350}
             />
             <StatCard
               title="Avg Rating"
               value={(stats?.averageRating ?? 0).toFixed(1)}
               sub="Customer satisfaction"
               icon={<Star className="w-4 h-4" />}
+              delay={400}
             />
           </>
         )}
@@ -127,7 +141,7 @@ export default function DashboardPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
         {/* Recent Bookings */}
-        <div className="lg:col-span-3">
+        <div className="lg:col-span-3" data-aos="fade-right" data-aos-delay="200">
           <h2 className="text-lg font-bold text-foreground mb-5">Recent Bookings</h2>
           <div className="rounded-2xl border border-border bg-card overflow-hidden">
             {bookingsLoading ? (
@@ -170,7 +184,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Top Services */}
-        <div className="lg:col-span-2">
+        <div className="lg:col-span-2" data-aos="fade-left" data-aos-delay="300">
           <h2 className="text-lg font-bold text-foreground mb-5">Top Services</h2>
           <div className="rounded-2xl border border-border bg-card overflow-hidden">
             {topLoading ? (

@@ -37,14 +37,14 @@ export default function ServicesPage() {
   });
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-12">
-      <div className="mb-8">
+    <div className="max-w-7xl mx-auto px-4 py-12 overflow-hidden">
+      <div className="mb-8" data-aos="fade-down">
         <h1 className="text-3xl font-bold text-foreground">Services</h1>
         <p className="text-muted-foreground mt-1">Book a professional for any home need</p>
       </div>
 
       {/* Search & Filters */}
-      <div className="flex flex-col sm:flex-row gap-3 mb-8">
+      <div className="flex flex-col sm:flex-row gap-3 mb-8" data-aos="fade-up">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
@@ -94,15 +94,19 @@ export default function ServicesPage() {
           ))}
         </div>
       ) : services?.length === 0 ? (
-        <div className="text-center py-20">
+        <div className="text-center py-20" data-aos="fade-up">
           <Settings className="w-12 h-12 text-muted-foreground/40 mx-auto mb-4" />
           <p className="text-muted-foreground">No services found. Try a different search or category.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {services?.map((svc) => (
+          {services?.map((svc, i) => (
             <Link key={svc.id} href={`/services/${svc.id}`} data-testid={`card-service-${svc.id}`}>
-              <div className="rounded-xl border border-border bg-card overflow-hidden hover:shadow-lg hover:border-primary/30 transition-all cursor-pointer group h-full flex flex-col">
+              <div 
+                className="rounded-xl border border-border bg-card overflow-hidden hover:shadow-lg hover:border-primary/30 transition-all cursor-pointer group h-full flex flex-col"
+                data-aos="fade-up"
+                data-aos-delay={(i % 3) * 100}
+              >
                 <div className="h-44 bg-gradient-to-br from-primary/15 to-accent/15 flex items-center justify-center">
                   <Settings className="w-14 h-14 text-primary/30 group-hover:scale-110 transition-transform" />
                 </div>
