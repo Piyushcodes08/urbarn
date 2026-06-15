@@ -1,0 +1,132 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── Helper Functions ────────────────────────────────────────────────────
+
+    // Check if the request comes from an authenticated user
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Check if the current user owns a document (by UID)
+    function isOwner(uid) {
+      return isAuthenticated() && request.auth.uid == uid;
+    }
+
+    // Read the current user's role from Firestore
+    function getUserRole() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+    }
+
+    // Check if the current user is an admin
+    function isAdmin() {
+      return isAuthenticated() && getUserRole() == "admin";
+    }
+
+    // Check if the current user is a vendor
+    function isVendor() {
+      return isAuthenticated() && getUserRole() == "vendor";
+    }
+
+    // Check if the current user is a customer
+    function isCustomer() {
+      return isAuthenticated() && getUserRole() == "customer";
+    }
+
+    // ── users collection ────────────────────────────────────────────────────
+    // Document ID = Firebase Auth UID
+    match /users/{userId} {
+      // User can read and update their own document
+      // Admin can read any user document
+      allow read: if isOwner(userId) || isAdmin();
+
+      // User can create their own document on registration
+      allow create: if isOwner(userId);
+
+      // User can update their own document (except role — protected)
+      // Admin can update any user document (for approving/rejecting vendors)
+      allow update: if isOwner(userId) || isAdmin();
+
+      // Only admin can delete user documents
+      allow delete: if isAdmin();
+    }
+
+    // ── services collection ─────────────────────────────────────────────────
+    match /services/{serviceId} {
+      // Public read for active services
+      allow read: if resource.data.status == "active" || isAuthenticated();
+
+      // Vendor can create services for themselves only
+      allow create: if isVendor()
+        && request.resource.data.vendorId == request.auth.uid;
+
+      // Vendor can update/delete their own services; admin can update any
+      allow update, delete: if isAdmin()
+        || (isVendor() && resource.data.vendorId == request.auth.uid);
+    }
+
+    // ── bookings collection ─────────────────────────────────────────────────
+    match /bookings/{bookingId} {
+      // Customer can read their own bookings
+      // Vendor can read bookings where vendorId matches their UID
+      // Admin can read all
+      allow read: if isAdmin()
+        || (isAuthenticated() && resource.data.customerId == request.auth.uid)
+        || (isVendor() && resource.data.vendorId == request.auth.uid);
+
+      // Customer can create a booking (customerId must be their own UID)
+      allow create: if isAuthenticated()
+        && request.resource.data.customerId == request.auth.uid;
+
+      // Vendor can update booking status for their own bookings
+      // Admin can update any booking
+      // Customer can cancel their own booking
+      allow update: if isAdmin()
+        || (isVendor() && resource.data.vendorId == request.auth.uid)
+        || (isAuthenticated() && resource.data.customerId == request.auth.uid);
+
+      // Only admin can delete bookings
+      allow delete: if isAdmin();
+    }
+
+    // ── categories collection ───────────────────────────────────────────────
+    match /categories/{categoryId} {
+      // Anyone can read categories (public)
+      allow read: if true;
+
+      // Only admin can create/update/delete categories
+      allow write: if isAdmin();
+    }
+
+    // ── professionals collection ────────────────────────────────────────────
+    // Legacy collection used by the seeded data layer
+    match /professionals/{professionalId} {
+      allow read: if true;
+      allow write: if isAdmin()
+        || (isVendor() && resource.data.userId == request.auth.uid);
+    }
+
+    // ── reviews collection ──────────────────────────────────────────────────
+    match /reviews/{reviewId} {
+      // Anyone can read reviews
+      allow read: if true;
+
+      // Authenticated customers can create reviews
+      allow create: if isAuthenticated();
+
+      // Admin can delete reviews; author can delete their own
+      allow delete: if isAdmin()
+        || (isAuthenticated() && resource.data.customerId == request.auth.uid);
+
+      // No updates to reviews
+      allow update: if isAdmin();
+    }
+
+    // ── Default: deny everything else ───────────────────────────────────────
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

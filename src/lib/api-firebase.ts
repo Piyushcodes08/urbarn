@@ -15,7 +15,9 @@ import {
   setDoc,
   updateDoc,
   deleteDoc,
-  writeBatch
+  writeBatch,
+  query,
+  where
 } from "firebase/firestore";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -59,6 +61,9 @@ export interface Professional {
   isVerified: boolean;
   isAvailable: boolean;
   categoryIds?: string | null;
+  serviceIds?: string | null;
+  servicePrices?: Record<string, number> | null;
+  serviceDurations?: Record<string, number> | null;
 }
 
 export type BookingStatus = "pending" | "confirmed" | "in_progress" | "completed" | "cancelled";
@@ -410,6 +415,10 @@ export function useListProfessionals(
         const catIdStr = String(params.categoryId);
         pros = pros.filter((p) => p.categoryIds?.split(",").includes(catIdStr));
       }
+      if (params?.serviceId) {
+        const serviceIdStr = String(params.serviceId);
+        pros = pros.filter((p) => !p.serviceIds || p.serviceIds.split(",").includes(serviceIdStr));
+      }
       return pros;
     },
     ...opts?.query,
@@ -637,7 +646,11 @@ export function useCreateBooking(
       const service = services.find((s) => s.id === data.serviceId);
       const professional = data.professionalId
         ? professionals.find((p) => p.id === data.professionalId)
-        : professionals.find((p) => p.isAvailable);
+        : professionals.find(
+            (p) =>
+              p.isAvailable &&
+              (!p.serviceIds || p.serviceIds.split(",").includes(String(data.serviceId)))
+          );
 
       const nextId = bookings.length === 0 ? 1 : Math.max(...bookings.map((b) => b.id)) + 1;
 
@@ -903,3 +916,109 @@ export function useCreateCategory(
     ...opts?.mutation,
   });
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Real Vendor Management Hooks (Admin Board approvals)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface UserDoc {
+  uid: string;
+  name: string;
+  email: string;
+  phone: string;
+  role: "customer" | "vendor" | "admin";
+  status?: "pending" | "approved" | "rejected";
+  serviceCategory?: string;
+  experience?: string;
+  city?: string;
+  address?: string;
+  businessName?: string;
+  idProof?: string;
+  professionalId?: number;
+  createdAt?: any;
+}
+
+export function useListVendors(opts?: QueryOpts<UserDoc[]>) {
+  return useQuery<UserDoc[]>({
+    queryKey: ["vendors-list"],
+    queryFn: async () => {
+      if (!isConfigured) return [];
+      const q = query(collection(db, "users"), where("role", "==", "vendor"));
+      const snap = await getDocs(q);
+      return snap.docs.map((d) => d.data() as UserDoc);
+    },
+    ...opts?.query,
+  });
+}
+
+const CATEGORY_MAP: Record<string, string> = {
+  "Salon at Home": "1",
+  "AC Repair": "2",
+  "Cleaning": "3",
+  "Electrician": "4",
+  "Plumbing": "5",
+  "Painting": "6",
+  "Appliance Repair": "7",
+  "Pest Control": "8",
+  "Beauty Services": "1",
+  "Carpenter": "7",
+};
+
+export function useApproveVendor(
+  opts?: MutationOpts<boolean, { vendor: UserDoc }>
+) {
+  return useMutation<boolean, Error, { vendor: UserDoc }>({
+    mutationFn: async ({ vendor }) => {
+      if (!isConfigured) return false;
+
+      // 1. Get next numeric ID for professional record
+      const prosSnap = await getDocs(collection(db, "professionals"));
+      const pros = prosSnap.docs.map((d) => d.data() as Professional);
+      const nextId = pros.length === 0 ? 1 : Math.max(...pros.map((p) => p.id)) + 1;
+
+      // 2. Create the professional profile
+      const newPro: Professional = {
+        id: nextId,
+        name: vendor.name,
+        bio: `${vendor.businessName || vendor.name} - Professional ${vendor.serviceCategory || "home"} services in ${vendor.city || "Mumbai"}.`,
+        rating: 5.0,
+        reviewCount: 0,
+        completedJobs: 0,
+        yearsExperience: parseInt(vendor.experience || "0"),
+        isVerified: true,
+        isAvailable: true,
+        categoryIds: CATEGORY_MAP[vendor.serviceCategory || ""] || "1",
+        avatarUrl: null,
+      };
+      
+      await setDoc(doc(db, "professionals", String(nextId)), newPro);
+
+      // 3. Update status in users collection
+      const userRef = doc(db, "users", vendor.uid);
+      await updateDoc(userRef, {
+        status: "approved",
+        professionalId: nextId,
+      });
+
+      return true;
+    },
+    ...opts?.mutation,
+  });
+}
+
+export function useRejectVendor(
+  opts?: MutationOpts<boolean, { uid: string }>
+) {
+  return useMutation<boolean, Error, { uid: string }>({
+    mutationFn: async ({ uid }) => {
+      if (!isConfigured) return false;
+      const userRef = doc(db, "users", uid);
+      await updateDoc(userRef, {
+        status: "rejected",
+      });
+      return true;
+    },
+    ...opts?.mutation,
+  });
+}
+

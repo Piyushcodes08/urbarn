@@ -1,21 +1,18 @@
 import { Link } from "wouter";
-import { ArrowRight, Shield, Clock, ThumbsUp, Award, Scissors, Sparkles, Wind, Zap, Droplets, PaintBucket, Settings, Bug } from "lucide-react";
+import { ArrowRight, Shield, Clock, ThumbsUp, Award, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import StarRating from "@/components/StarRating";
 import {
-  useListCategories,
   useListFeaturedServices,
   useListProfessionals,
-  getListCategoriesQueryKey,
   getListFeaturedServicesQueryKey,
   getListProfessionalsQueryKey,
 } from "@workspace/api-client-react";
+import { CATEGORY_DETAILS } from "@/data/categoryServicesData";
 
-const iconMap: Record<string, React.ElementType> = {
-  Scissors, Sparkles, Wind, Zap, Droplets, PaintBucket, Settings, Bug,
-};
+
 
 function TrustBadge({ icon, title, desc, delay }: { icon: React.ReactNode; title: string; desc: string; delay?: number }) {
   return (
@@ -32,9 +29,6 @@ function TrustBadge({ icon, title, desc, delay }: { icon: React.ReactNode; title
 }
 
 export default function HomePage() {
-  const { data: categories, isLoading: catLoading } = useListCategories({
-    query: { queryKey: getListCategoriesQueryKey() },
-  });
   const { data: featured, isLoading: featLoading } = useListFeaturedServices({
     query: { queryKey: getListFeaturedServicesQueryKey() },
   });
@@ -91,7 +85,7 @@ export default function HomePage() {
       <section className="max-w-7xl mx-auto px-4 py-14 overflow-hidden">
         <div className="flex items-center justify-between mb-8">
           <div data-aos="fade-right">
-            <h2 className="text-2xl font-bold text-foreground">Browse by Category</h2>
+            <h2 className="text-2xl font-bold text-foreground">Home services at your doorstep</h2>
             <p className="text-muted-foreground text-sm mt-1">Find the right service for your home</p>
           </div>
           <Link href="/categories">
@@ -100,34 +94,48 @@ export default function HomePage() {
             </Button>
           </Link>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
-          {catLoading
-            ? Array.from({ length: 8 }).map((_, i) => (
-                <div key={i} className="flex flex-col items-center gap-2 p-3">
-                  <Skeleton className="w-12 h-12 rounded-full" />
-                  <Skeleton className="h-3 w-16" />
-                </div>
-              ))
-            : categories?.map((cat, i) => {
-                const Icon = iconMap[cat.icon] ?? Settings;
-                return (
-                  <Link
-                    key={cat.id}
-                    href={`/services?categoryId=${cat.id}`}
-                    data-testid={`card-category-${cat.id}`}
-                    className="flex flex-col items-center gap-2 p-3 rounded-xl border border-border bg-card hover:border-primary/40 hover:bg-primary/5 transition-all cursor-pointer group"
-                    data-aos="zoom-in"
-                    data-aos-delay={(i % 8) * 50}
-                  >
-                    <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-                      <Icon className="w-5 h-5 text-primary" />
-                    </div>
-                    <span className="text-xs font-medium text-center text-foreground leading-tight">{cat.name}</span>
-                  </Link>
-                );
-              })}
+        {/* UC-style category pills */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3 mb-6">
+          {CATEGORY_DETAILS.map((cat, i) => (
+            <Link
+              key={cat.id}
+              href={`/categories/${cat.slug}`}
+              data-testid={`card-category-uc-${cat.id}`}
+              className="flex flex-col items-center gap-2 p-3 rounded-xl border border-border bg-card hover:border-primary/40 hover:bg-primary/5 transition-all cursor-pointer group"
+              data-aos="zoom-in"
+              data-aos-delay={(i % 8) * 50}
+            >
+              <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${cat.gradient} flex items-center justify-center text-xl group-hover:scale-110 transition-transform`}>
+                {cat.icon}
+              </div>
+              <span className="text-xs font-medium text-center text-foreground leading-tight">{cat.name}</span>
+            </Link>
+          ))}
+        </div>
+        {/* Sub-category quick shortcuts */}
+        <div className="flex flex-wrap gap-2">
+          {CATEGORY_DETAILS.flatMap((cat) =>
+            cat.subCategories.slice(0, 1).map((sub) => ({
+              label: sub.name,
+              icon: sub.icon,
+              href: `/categories/${cat.slug}?sub=${sub.id}`,
+              id: `${cat.id}-${sub.id}`,
+            }))
+          ).map(({ label, icon, href, id }) => (
+            <Link
+              key={id}
+              href={href}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-border bg-card text-xs font-medium text-muted-foreground hover:border-primary/50 hover:text-primary hover:bg-primary/5 transition-all"
+            >
+              <span>{icon}</span> {label}
+            </Link>
+          ))}
+          <Link href="/categories" className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full border border-primary/30 bg-primary/5 text-xs font-semibold text-primary transition-all hover:bg-primary/10">
+            View all <ArrowRight className="w-3 h-3" />
+          </Link>
         </div>
       </section>
+
 
       {/* Featured Services */}
       <section className="bg-muted/30 py-14 px-4 overflow-hidden">

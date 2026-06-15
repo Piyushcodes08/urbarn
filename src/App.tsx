@@ -4,8 +4,13 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import ProtectedRoute from "@/components/ProtectedRoute";
+import RoleProtectedRoute from "@/components/RoleProtectedRoute";
+
+// Existing pages — unchanged
 import HomePage from "@/pages/HomePage";
 import CategoriesPage from "@/pages/CategoriesPage";
+import CategoryDetailPage from "@/pages/CategoryDetailPage";
 import ServicesPage from "@/pages/ServicesPage";
 import ServiceDetailPage from "@/pages/ServiceDetailPage";
 import ProfessionalsPage from "@/pages/ProfessionalsPage";
@@ -14,6 +19,14 @@ import BookingsPage from "@/pages/BookingsPage";
 import BookingNewPage from "@/pages/BookingNewPage";
 import VendorDashboardPage from "@/pages/VendorDashboardPage";
 import AdminPanelPage from "@/pages/AdminPanelPage";
+
+// New auth pages
+import LoginPage from "@/pages/LoginPage";
+import RegisterPage from "@/pages/RegisterPage";
+import VendorRegisterPage from "@/pages/VendorRegisterPage";
+import AdminLoginPage from "@/pages/AdminLoginPage";
+import UnauthorizedPage from "@/pages/UnauthorizedPage";
+
 import { AuthProvider, useAuth } from "@/hooks/use-auth";
 import { useEffect } from "react";
 import AOS from "aos";
@@ -35,7 +48,6 @@ function AOSInitializer() {
   }, []);
 
   useEffect(() => {
-    // Wait a brief moment for the route components to render, then refresh animations
     const timer = setTimeout(() => {
       AOS.refresh();
     }, 100);
@@ -52,10 +64,9 @@ function DashboardRedirect() {
 
   useEffect(() => {
     if (isLoading) return;
-    
+
     if (!user) {
-      setLocation("/");
-      setShowLoginModal(true);
+      setLocation("/login");
     } else if (user.role === "admin") {
       setLocation("/admin");
     } else if (user.role === "vendor") {
@@ -67,35 +78,14 @@ function DashboardRedirect() {
 
   return (
     <div className="flex items-center justify-center min-h-[50vh]">
-      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
     </div>
   );
 }
 
-function Router() {
-  return (
-    <Switch>
-      <Route path="/" component={HomePage} />
-      <Route path="/categories" component={CategoriesPage} />
-      <Route path="/services" component={ServicesPage} />
-      <Route path="/services/:id" component={ServiceDetailPage} />
-      <Route path="/professionals" component={ProfessionalsPage} />
-      <Route path="/professionals/:id" component={ProfessionalDetailPage} />
-      <Route path="/bookings" component={BookingsPage} />
-      <Route path="/bookings/new" component={BookingNewPage} />
-      <Route path="/vendor-dashboard" component={VendorDashboardPage} />
-      <Route path="/admin" component={AdminPanelPage} />
-      <Route path="/dashboard" component={DashboardRedirect} />
-      <Route component={NotFoundRedirect} />
-    </Switch>
-  );
-}
-
-// Redirect all undefined pages gracefully or show wouter not found
 function NotFoundRedirect() {
   const [, setLocation] = useLocation();
   useEffect(() => {
-    // Redirect unknown routes to home page
     const timer = setTimeout(() => {
       setLocation("/");
     }, 2000);
@@ -107,6 +97,114 @@ function NotFoundRedirect() {
       <h2 className="text-2xl font-bold text-foreground">404 - Page Not Found</h2>
       <p className="text-muted-foreground mt-2 text-sm">Redirecting you back to safety...</p>
     </div>
+  );
+}
+
+function Router() {
+  return (
+    <Switch>
+      {/* ── Public Routes ─────────────────────────────────────── */}
+      <Route path="/" component={HomePage} />
+      <Route path="/categories" component={CategoriesPage} />
+      <Route path="/categories/:slug" component={CategoryDetailPage} />
+      <Route path="/services" component={ServicesPage} />
+      <Route path="/services/:id" component={ServiceDetailPage} />
+      <Route path="/professionals" component={ProfessionalsPage} />
+      <Route path="/professionals/:id" component={ProfessionalDetailPage} />
+      <Route path="/unauthorized" component={UnauthorizedPage} />
+
+      {/* ── Auth Routes ───────────────────────────────────────── */}
+      <Route path="/login" component={LoginPage} />
+      <Route path="/register" component={RegisterPage} />
+      <Route path="/vendor-register" component={VendorRegisterPage} />
+      <Route path="/admin-login" component={AdminLoginPage} />
+
+      {/* ── Customer Routes ───────────────────────────────────── */}
+      <Route path="/bookings">
+        <RoleProtectedRoute allowedRoles={["customer", "admin"]}>
+          <BookingsPage />
+        </RoleProtectedRoute>
+      </Route>
+      <Route path="/bookings/new">
+        <ProtectedRoute>
+          <BookingNewPage />
+        </ProtectedRoute>
+      </Route>
+
+      {/* ── Vendor Routes ─────────────────────────────────────── */}
+      <Route path="/vendor-dashboard">
+        <RoleProtectedRoute allowedRoles={["vendor"]}>
+          <VendorDashboardPage />
+        </RoleProtectedRoute>
+      </Route>
+      {/* Sub-routes redirect to dashboard tabs */}
+      <Route path="/vendor/bookings">
+        <RoleProtectedRoute allowedRoles={["vendor"]}>
+          <VendorDashboardPage />
+        </RoleProtectedRoute>
+      </Route>
+      <Route path="/vendor/services">
+        <RoleProtectedRoute allowedRoles={["vendor"]}>
+          <VendorDashboardPage />
+        </RoleProtectedRoute>
+      </Route>
+      <Route path="/vendor/profile">
+        <RoleProtectedRoute allowedRoles={["vendor"]}>
+          <VendorDashboardPage />
+        </RoleProtectedRoute>
+      </Route>
+      <Route path="/vendor/earnings">
+        <RoleProtectedRoute allowedRoles={["vendor"]}>
+          <VendorDashboardPage />
+        </RoleProtectedRoute>
+      </Route>
+      <Route path="/vendor/add-service">
+        <RoleProtectedRoute allowedRoles={["vendor"]}>
+          <VendorDashboardPage />
+        </RoleProtectedRoute>
+      </Route>
+
+      {/* ── Admin Routes ──────────────────────────────────────── */}
+      <Route path="/admin">
+        <RoleProtectedRoute allowedRoles={["admin"]}>
+          <AdminPanelPage />
+        </RoleProtectedRoute>
+      </Route>
+      <Route path="/admin/customers">
+        <RoleProtectedRoute allowedRoles={["admin"]}>
+          <AdminPanelPage />
+        </RoleProtectedRoute>
+      </Route>
+      <Route path="/admin/vendors">
+        <RoleProtectedRoute allowedRoles={["admin"]}>
+          <AdminPanelPage />
+        </RoleProtectedRoute>
+      </Route>
+      <Route path="/admin/services">
+        <RoleProtectedRoute allowedRoles={["admin"]}>
+          <AdminPanelPage />
+        </RoleProtectedRoute>
+      </Route>
+      <Route path="/admin/bookings">
+        <RoleProtectedRoute allowedRoles={["admin"]}>
+          <AdminPanelPage />
+        </RoleProtectedRoute>
+      </Route>
+      <Route path="/admin/categories">
+        <RoleProtectedRoute allowedRoles={["admin"]}>
+          <AdminPanelPage />
+        </RoleProtectedRoute>
+      </Route>
+      <Route path="/admin/reports">
+        <RoleProtectedRoute allowedRoles={["admin"]}>
+          <AdminPanelPage />
+        </RoleProtectedRoute>
+      </Route>
+
+      {/* ── Utility Routes ────────────────────────────────────── */}
+      <Route path="/dashboard" component={DashboardRedirect} />
+      <Route component={NotFoundRedirect} />
+    </Switch>
   );
 }
 

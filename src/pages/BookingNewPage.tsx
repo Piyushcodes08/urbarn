@@ -8,13 +8,17 @@ import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import StarRating from "@/components/StarRating";
+
+
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   useListServices,
   useCreateBooking,
+  useGetProfessional,
   getListServicesQueryKey,
   getListBookingsQueryKey,
+  getGetProfessionalQueryKey,
 } from "@workspace/api-client-react";
 
 const STEPS = ["Select Service", "Date & Time", "Your Details", "Confirm"];
@@ -23,9 +27,11 @@ export default function BookingNewPage() {
   const search = useSearch();
   const params = new URLSearchParams(search);
   const preselectedServiceId = params.get("serviceId") ? Number(params.get("serviceId")) : undefined;
+  const preselectedProfId = params.get("professionalId") ? Number(params.get("professionalId")) : undefined;
 
   const [step, setStep] = useState(preselectedServiceId ? 1 : 0);
   const [selectedServiceId, setSelectedServiceId] = useState<number | undefined>(preselectedServiceId);
+  const [selectedProfId] = useState<number | undefined>(preselectedProfId);
   const [scheduledAt, setScheduledAt] = useState("");
   const [address, setAddress] = useState("");
   const [customerName, setCustomerName] = useState("");
@@ -37,6 +43,10 @@ export default function BookingNewPage() {
 
   const { data: services, isLoading } = useListServices(undefined, {
     query: { queryKey: getListServicesQueryKey() },
+  });
+
+  const { data: professional } = useGetProfessional(selectedProfId ?? 0, {
+    query: { enabled: !!selectedProfId, queryKey: getGetProfessionalQueryKey(selectedProfId ?? 0) }
   });
 
   const createBooking = useCreateBooking({
@@ -54,17 +64,26 @@ export default function BookingNewPage() {
 
   const selectedService = services?.find((s) => s.id === selectedServiceId);
 
+  const finalPrice = (selectedServiceId && professional?.servicePrices?.[selectedServiceId] !== undefined)
+    ? professional.servicePrices[selectedServiceId]
+    : (selectedService?.basePrice ?? 0);
+
+  const finalDuration = (selectedServiceId && professional?.serviceDurations?.[selectedServiceId] !== undefined)
+    ? professional.serviceDurations[selectedServiceId]
+    : (selectedService?.durationMinutes ?? 0);
+
   function handleSubmit() {
     if (!selectedServiceId || !scheduledAt || !address || !customerName) return;
     createBooking.mutate({
       data: {
         serviceId: selectedServiceId,
+        professionalId: selectedProfId,
         scheduledAt: new Date(scheduledAt).toISOString(),
         address,
         customerName,
         customerPhone: customerPhone || undefined,
         notes: notes || undefined,
-        totalPrice: selectedService?.basePrice ?? 0,
+        totalPrice: finalPrice,
       },
     });
   }
@@ -145,12 +164,22 @@ export default function BookingNewPage() {
         <div className="space-y-6">
           <h2 className="text-lg font-semibold text-foreground mb-2">Choose Date & Time</h2>
           {selectedService && (
-            <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 flex items-center justify-between">
-              <div>
-                <p className="font-medium text-foreground">{selectedService.name}</p>
-                <p className="text-sm text-muted-foreground">{selectedService.durationMinutes} minutes</p>
+            <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 flex flex-col gap-2.5">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-medium text-foreground">{selectedService.name}</p>
+                  <p className="text-sm text-muted-foreground">{finalDuration} minutes</p>
+                </div>
+                <span className="font-bold text-foreground text-lg">₹{finalPrice}</span>
               </div>
-              <span className="font-bold text-foreground text-lg">₹{selectedService.basePrice}</span>
+              {professional && (
+                <div className="text-xs text-muted-foreground border-t border-primary/10 pt-2 flex justify-between">
+                  <span>Selected Professional: <strong>{professional.name}</strong></span>
+                  {professional.servicePrices?.[selectedService.id] !== undefined && (
+                    <span className="text-primary font-medium">Custom Partner Rate Applied</span>
+                  )}
+                </div>
+              )}
             </div>
           )}
           <div className="space-y-2">
@@ -234,6 +263,7 @@ export default function BookingNewPage() {
           <div className="rounded-2xl border border-border bg-card divide-y divide-border overflow-hidden">
             {[
               { label: "Service", value: selectedService.name, icon: <CheckCircle className="w-4 h-4" /> },
+              ...(professional ? [{ label: "Professional", value: professional.name, icon: <User className="w-4 h-4" /> }] : []),
               { label: "Date & Time", value: scheduledAt ? new Date(scheduledAt).toLocaleString() : "", icon: <Calendar className="w-4 h-4" /> },
               { label: "Address", value: address, icon: <MapPin className="w-4 h-4" /> },
               { label: "Name", value: customerName, icon: <User className="w-4 h-4" /> },
@@ -249,9 +279,16 @@ export default function BookingNewPage() {
               </div>
             ))}
           </div>
-          <div className="rounded-xl bg-primary/5 border border-primary/20 p-4 flex items-center justify-between">
-            <span className="font-semibold text-foreground">Total Amount</span>
-            <span className="text-2xl font-bold text-foreground">₹{selectedService.basePrice}</span>
+          <div className="rounded-xl bg-primary/5 border border-primary/20 p-4 flex flex-col gap-2.5">
+            <div className="flex items-center justify-between">
+              <span className="font-semibold text-foreground">Total Amount</span>
+              <span className="text-2xl font-bold text-foreground">₹{finalPrice}</span>
+            </div>
+            {professional && (
+              <div className="text-xs text-muted-foreground border-t border-primary/10 pt-2">
+                Assigned Professional: <strong>{professional.name}</strong> ({finalDuration} mins duration)
+              </div>
+            )}
           </div>
           <p className="text-xs text-muted-foreground text-center">
             By booking, you agree to our terms. Free cancellation up to 2 hours before the appointment.

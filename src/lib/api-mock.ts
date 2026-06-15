@@ -54,6 +54,9 @@ export interface Professional {
   isVerified: boolean;
   isAvailable: boolean;
   categoryIds?: string | null;
+  serviceIds?: string | null;
+  servicePrices?: Record<string, number> | null;
+  serviceDurations?: Record<string, number> | null;
 }
 
 export type BookingStatus = "pending" | "confirmed" | "in_progress" | "completed" | "cancelled";
@@ -173,15 +176,18 @@ const SEED_SERVICES: Service[] = [
 ];
 
 const SEED_PROFESSIONALS: Professional[] = [
-  { id: 1, name: "Priya Sharma", bio: "Certified beautician with 8 years of experience in hair styling, facials, and skincare. Trained at VLCC and L'Oreal Academy.", rating: 4.9, reviewCount: 543, completedJobs: 1240, yearsExperience: 8, isVerified: true, isAvailable: true, categoryIds: "1" },
-  { id: 2, name: "Rajesh Kumar", bio: "Expert AC technician and appliance repair specialist. Authorized service partner for Samsung, LG, and Daikin.", rating: 4.8, reviewCount: 876, completedJobs: 2341, yearsExperience: 12, isVerified: true, isAvailable: true, categoryIds: "2,7" },
-  { id: 3, name: "Sunita Devi", bio: "Professional home cleaner and sanitization specialist. Trained in eco-friendly deep cleaning protocols.", rating: 4.7, reviewCount: 432, completedJobs: 987, yearsExperience: 6, isVerified: true, isAvailable: false, categoryIds: "3" },
-  { id: 4, name: "Anil Gupta", bio: "Licensed electrician with expertise in home wiring, panel upgrades, and smart home installations.", rating: 4.8, reviewCount: 765, completedJobs: 1876, yearsExperience: 10, isVerified: true, isAvailable: true, categoryIds: "4" },
-  { id: 5, name: "Meena Patel", bio: "Skilled beautician specializing in bridal makeup, mehendi, and skincare treatments. Serving Mumbai for 7 years.", rating: 4.9, reviewCount: 654, completedJobs: 1543, yearsExperience: 7, isVerified: true, isAvailable: true, categoryIds: "1" },
-  { id: 6, name: "Vikram Singh", bio: "Master plumber and bathroom renovation expert. Quick turnaround, clean work, and quality materials guaranteed.", rating: 4.7, reviewCount: 543, completedJobs: 1234, yearsExperience: 9, isVerified: true, isAvailable: false, categoryIds: "5" },
-  { id: 7, name: "Deepak Nair", bio: "Experienced painter specialized in texture painting, wood polish, and waterproofing. 400+ happy clients.", rating: 4.8, reviewCount: 321, completedJobs: 456, yearsExperience: 11, isVerified: true, isAvailable: true, categoryIds: "6" },
-  { id: 8, name: "Kavita Rao", bio: "Certified pest control technician using government-approved, child-safe chemicals. Termite control specialist.", rating: 4.6, reviewCount: 234, completedJobs: 678, yearsExperience: 5, isVerified: true, isAvailable: true, categoryIds: "8" },
+  { id: 1, name: "Priya Sharma", bio: "Certified beautician with 8 years of experience in hair styling, facials, and skincare. Trained at VLCC and L'Oreal Academy. Specialises in bridal makeup, hair spa, and advanced facials.", rating: 4.9, reviewCount: 543, completedJobs: 1240, yearsExperience: 8, isVerified: true, isAvailable: true, categoryIds: "1" },
+  { id: 2, name: "Rajesh Kumar", bio: "Expert AC technician and appliance repair specialist. Authorized service partner for Samsung, LG, and Daikin. 12+ years of field experience across Noida, Delhi, and Gurgaon.", rating: 4.8, reviewCount: 876, completedJobs: 2341, yearsExperience: 12, isVerified: true, isAvailable: true, categoryIds: "2,7" },
+  { id: 3, name: "Sunita Devi", bio: "Professional home cleaner and sanitization specialist. Trained in eco-friendly deep cleaning protocols. Expert in kitchen degreasing, bathroom descaling, and sofa/carpet cleaning.", rating: 4.7, reviewCount: 432, completedJobs: 987, yearsExperience: 6, isVerified: true, isAvailable: false, categoryIds: "3" },
+  { id: 4, name: "Anil Gupta", bio: "Licensed electrician with expertise in home wiring, panel upgrades, and smart home installations. Government certified and insured.", rating: 4.8, reviewCount: 765, completedJobs: 1876, yearsExperience: 10, isVerified: true, isAvailable: true, categoryIds: "4" },
+  { id: 5, name: "Meena Patel", bio: "Skilled beautician specializing in bridal makeup, spa treatments, and skincare. Certified HydraFacial and aromatherapy therapist. Serving Mumbai for 7 years.", rating: 4.9, reviewCount: 654, completedJobs: 1543, yearsExperience: 7, isVerified: true, isAvailable: true, categoryIds: "1" },
+  { id: 6, name: "Vikram Singh", bio: "Master plumber and bathroom renovation expert. Quick turnaround, clean work, and quality materials guaranteed. Drain unblocking specialist.", rating: 4.7, reviewCount: 543, completedJobs: 1234, yearsExperience: 9, isVerified: true, isAvailable: false, categoryIds: "5" },
+  { id: 7, name: "Deepak Nair", bio: "Experienced painter specialized in texture painting, wood polish, and waterproofing. 400+ happy clients across Bangalore.", rating: 4.8, reviewCount: 321, completedJobs: 456, yearsExperience: 11, isVerified: true, isAvailable: true, categoryIds: "6" },
+  { id: 8, name: "Kavita Rao", bio: "Certified pest control technician using government-approved, child-safe chemicals. Termite, cockroach, and mosquito control specialist.", rating: 4.6, reviewCount: 234, completedJobs: 678, yearsExperience: 5, isVerified: true, isAvailable: true, categoryIds: "8" },
+  { id: 9, name: "Ananya Krishnan", bio: "Luxury spa therapist and wellness expert. Trained in Swedish, deep tissue, hot stone massage, and aromatherapy. Certified from CIDESCO International.", rating: 4.9, reviewCount: 389, completedJobs: 820, yearsExperience: 6, isVerified: true, isAvailable: true, categoryIds: "1" },
+  { id: 10, name: "Rohit Joshi", bio: "Expert hair stylist with international training from Toni & Guy Academy. Specialises in balayage, keratin treatments, and hair spa. Serving Delhi NCR.", rating: 4.8, reviewCount: 276, completedJobs: 640, yearsExperience: 5, isVerified: true, isAvailable: true, categoryIds: "1" },
 ];
+
 
 const SEED_REVIEWS: Review[] = [
   { id: 1, serviceId: 1, serviceName: "Women's Haircut & Styling", professionalId: 1, professionalName: "Priya Sharma", customerName: "Anjali Mehta", rating: 5, comment: "Priya is absolutely amazing! My hair looks gorgeous and she was very professional.", createdAt: "2026-05-15T10:00:00Z" },
@@ -194,9 +200,27 @@ const SEED_REVIEWS: Review[] = [
   { id: 8, serviceId: 15, serviceName: "Interior Wall Painting", professionalId: 7, professionalName: "Deepak Nair", customerName: "Sanjay Malhotra", rating: 5, comment: "Deepak transformed our living room. Clean work, no mess, and finished on time.", createdAt: "2026-06-05T08:00:00Z" },
 ];
 
-// ─────────────────────────────────────────────────────────────────────────────
-// localStorage helpers
-// ─────────────────────────────────────────────────────────────────────────────
+// Pre-seeded demo bookings for Priya Sharma (Salon vendor, id:1)
+const DEMO_BOOKINGS_PRIYA: Booking[] = [
+  { id: 1001, serviceId: 1, serviceName: "Women's Haircut & Styling", professionalId: 1, professionalName: "Priya Sharma", scheduledAt: new Date(Date.now() + 2 * 3600000).toISOString(), status: "pending", totalPrice: 499, address: "A-14, Sector 18, Noida, UP", customerName: "Anjali Mehta", customerPhone: "+91 98765 43210", notes: "Please bring your own scissors — allergic to shared tools." },
+  { id: 1002, serviceId: 2, serviceName: "Facial & Cleanup", professionalId: 1, professionalName: "Priya Sharma", scheduledAt: new Date(Date.now() + 24 * 3600000).toISOString(), status: "confirmed", totalPrice: 699, address: "B-22, Green Park, New Delhi", customerName: "Ritu Kapoor", customerPhone: "+91 87654 32109", notes: "" },
+  { id: 1003, serviceId: 3, serviceName: "Manicure & Pedicure", professionalId: 1, professionalName: "Priya Sharma", scheduledAt: new Date(Date.now() - 2 * 3600000).toISOString(), status: "in_progress", totalPrice: 599, address: "C-5, Vasant Kunj, New Delhi", customerName: "Pooja Sharma", customerPhone: "+91 76543 21098", notes: "Prefer light pink nail colour." },
+  { id: 1004, serviceId: 1, serviceName: "Women's Haircut & Styling", professionalId: 1, professionalName: "Priya Sharma", scheduledAt: new Date(Date.now() - 3 * 24 * 3600000).toISOString(), status: "completed", totalPrice: 499, address: "D-8, Saket, New Delhi", customerName: "Neha Singh", customerPhone: "+91 65432 10987", notes: "" },
+  { id: 1005, serviceId: 2, serviceName: "Facial & Cleanup", professionalId: 1, professionalName: "Priya Sharma", scheduledAt: new Date(Date.now() - 5 * 24 * 3600000).toISOString(), status: "completed", totalPrice: 699, address: "E-12, Lajpat Nagar, New Delhi", customerName: "Prerna Gupta", customerPhone: "+91 54321 09876", notes: "" },
+];
+
+function getBookingsWithDemo(professionalId?: number): Booking[] {
+  const stored = getBookings();
+  // If fetching for pro id 1 and localStorage is empty, seed demo bookings
+  if (professionalId === 1 && stored.filter(b => b.professionalId === 1).length === 0) {
+    const allOther = stored.filter(b => b.professionalId !== 1);
+    const merged = [...allOther, ...DEMO_BOOKINGS_PRIYA];
+    saveBookings(merged);
+    return merged;
+  }
+  return stored;
+}
+
 
 function getBookings(): Booking[] {
   try {
@@ -416,7 +440,8 @@ export function useListBookings(
     queryKey: getListBookingsQueryKey(params || {}),
     queryFn: async () => {
       await delay();
-      let bookings = getBookings();
+      // Use demo-seeded bookings for professional id:1 (Priya Sharma)
+      let bookings = getBookingsWithDemo(params?.professionalId);
       if (params?.status) {
         bookings = bookings.filter((b) => b.status === params.status);
       }
@@ -428,7 +453,7 @@ export function useListBookings(
         bookings = bookings.filter((b) => b.customerName.toLowerCase().includes(q));
       }
       return bookings.sort(
-        (a, b) => new Date(b.createdAt ?? 0).getTime() - new Date(a.createdAt ?? 0).getTime()
+        (a, b) => new Date(b.scheduledAt).getTime() - new Date(a.scheduledAt).getTime()
       );
     },
     ...opts?.query,

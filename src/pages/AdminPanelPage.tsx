@@ -14,6 +14,9 @@ import {
   useListBookings,
   useUpdateBookingStatus,
   useGetDashboardStats,
+  useListVendors,
+  useApproveVendor,
+  useRejectVendor,
   getListCategoriesQueryKey,
   getListServicesQueryKey,
   getListProfessionalsQueryKey,
@@ -37,6 +40,7 @@ import {
   TrendingUp,
   Trash2,
   ShieldCheck,
+  ShieldAlert,
   Search,
   Filter,
   PlusCircle,
@@ -135,6 +139,34 @@ export default function AdminPanelPage() {
 
   const { data: professionals } = useListProfessionals(undefined, {
     query: { queryKey: getListProfessionalsQueryKey() },
+  });
+
+  const { data: vendors } = useListVendors();
+
+  const approveVendor = useApproveVendor({
+    mutation: {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ["vendors-list"] });
+        queryClient.invalidateQueries({ queryKey: getListProfessionalsQueryKey() });
+        queryClient.invalidateQueries({ queryKey: getGetDashboardStatsQueryKey() });
+        toast({ title: "Vendor Approved", description: "The vendor is now active on the platform." });
+      },
+      onError: (err) => {
+        toast({ title: "Approval Failed", description: err.message, variant: "destructive" });
+      }
+    }
+  });
+
+  const rejectVendor = useRejectVendor({
+    mutation: {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ["vendors-list"] });
+        toast({ title: "Vendor Rejected", description: "The application has been rejected." });
+      },
+      onError: (err) => {
+        toast({ title: "Rejection Failed", description: err.message, variant: "destructive" });
+      }
+    }
   });
 
   const { data: bookings, isLoading: bookingsLoading } = useListBookings(
@@ -676,6 +708,68 @@ export default function AdminPanelPage() {
 
         {/* Tab 4: Professionals Management */}
         <TabsContent value="professionals" className="space-y-4 focus-visible:outline-none">
+          {/* Pending Applications Section */}
+          {vendors && vendors.filter((v) => v.status === "pending").length > 0 && (
+            <div className="space-y-3 mb-6 bg-card border border-border rounded-xl p-5 shadow-sm">
+              <h3 className="text-sm font-bold text-yellow-600 dark:text-yellow-400 flex items-center gap-1.5">
+                <ShieldAlert className="w-4.5 h-4.5" /> Pending Vendor Applications
+              </h3>
+              <div className="border border-border rounded-lg overflow-hidden">
+                <Table>
+                  <TableHeader className="bg-yellow-50/50 dark:bg-yellow-950/10">
+                    <TableRow>
+                      <TableHead className="text-xs">Vendor Name</TableHead>
+                      <TableHead className="text-xs">Business Name</TableHead>
+                      <TableHead className="text-xs">Category</TableHead>
+                      <TableHead className="text-xs">Experience</TableHead>
+                      <TableHead className="text-xs">City</TableHead>
+                      <TableHead className="text-xs">Contact</TableHead>
+                      <TableHead className="text-xs text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {vendors
+                      .filter((v) => v.status === "pending")
+                      .map((v) => (
+                        <TableRow key={v.uid} className="hover:bg-muted/10">
+                          <TableCell className="font-semibold text-xs text-foreground">{v.name}</TableCell>
+                          <TableCell className="text-xs text-foreground">{v.businessName || "—"}</TableCell>
+                          <TableCell className="text-xs text-muted-foreground">{v.serviceCategory}</TableCell>
+                          <TableCell className="text-xs text-muted-foreground">{v.experience || "0"} years</TableCell>
+                          <TableCell className="text-xs text-muted-foreground">{v.city}</TableCell>
+                          <TableCell className="text-xs text-muted-foreground">
+                            <div>{v.email}</div>
+                            <div className="text-[10px]">{v.phone}</div>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex justify-end gap-1.5">
+                              <Button
+                                size="sm"
+                                className="text-xs bg-emerald-600 hover:bg-emerald-700 text-white h-7 px-2.5 py-0 rounded-lg"
+                                onClick={() => approveVendor.mutate({ vendor: v })}
+                                disabled={approveVendor.isPending}
+                              >
+                                Approve
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="text-xs border-destructive/20 text-destructive hover:bg-destructive/10 h-7 px-2.5 py-0 rounded-lg"
+                                onClick={() => rejectVendor.mutate({ uid: v.uid })}
+                                disabled={rejectVendor.isPending}
+                              >
+                                Reject
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </div>
+          )}
+
           <div className="flex justify-between items-center bg-muted/40 p-4 rounded-xl border border-border">
             <p className="text-xs font-semibold text-muted-foreground">{professionals?.length ?? 0} Vendors Active</p>
             
