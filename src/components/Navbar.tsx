@@ -322,11 +322,13 @@ export default function Navbar() {
   return (
     <>
       {/* ── Announcement bar ──────────────────────────────────────────────── */}
-      <div className="bg-primary text-primary-foreground text-center text-xs py-2 px-4 font-medium tracking-wide hidden md:flex items-center justify-center gap-2">
+      <div className="text-white text-center text-xs py-2 px-4 font-semibold tracking-wide hidden md:flex items-center justify-center gap-2" style={{ background: "linear-gradient(90deg, #1e3560 0%, #e07b1a 100%)" }}>
         <Sparkles className="w-3.5 h-3.5 shrink-0" />
         <span>
-          Get 20% off your first booking this month &mdash; use code{" "}
-          <strong>URBAN20</strong>
+          Get 20% off your first booking this month &mdash; use {"  "}
+           <span className="text-[#072E59] font-bold"> Home</span>
+                <span className="text-[#C7AB86]"> ♥ </span>
+                <span className="text-[#F47C19] font-bold">Mate</span>
         </span>
       </div>
 
@@ -339,63 +341,35 @@ export default function Navbar() {
             : "bg-card border-b border-border"
         )}
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
           <div className="flex items-center h-16 gap-4">
+
+
 
             {/* ── Logo ──────────────────────────────────────────────────── */}
             <Link
               href="/"
-              className="flex items-center gap-2.5 shrink-0 group"
+              className="shrink-0 flex flex-col items-center leading-none"
               data-testid="link-home-logo"
             >
-              <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center shadow-sm group-hover:shadow-primary/40 transition-shadow">
-                <Wrench className="w-5 h-5 text-primary-foreground" />
-              </div>
-              <div className="leading-none">
-                <span className="font-extrabold text-base tracking-tight text-foreground">
-                  Urban
-                </span>
-                <span className="font-extrabold text-base tracking-tight text-primary">
-                  Services
-                </span>
+              <img
+                src="/homemate.png"
+                alt="HomeMate"
+                className="h-12 w-auto object-contain select-none"
+                draggable={false}
+              />
+              <div className="text-slate-500 tracking-wide mt-0.5 pl-0.5">
+               
+                <span className="text-[#072E59] font-semibold"> Home</span>
+                <span className="text-[#C7AB86]">♥</span>
+                <span className="text-[#F47C19] font-semibold">Mate</span>
+               
               </div>
             </Link>
 
-            {/* ── Desktop search (centered, expands) ────────────────────── */}
-            <div
-              ref={searchRef}
-              className="hidden md:block relative flex-1 max-w-md mx-auto"
-            >
-              <div className="relative">
-                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
-                <Input
-                  type="text"
-                  placeholder="Search for services, categories…"
-                  value={searchQuery}
-                  onChange={(e) => {
-                    setSearchQuery(e.target.value);
-                    setSearchFocused(true);
-                  }}
-                  onFocus={() => setSearchFocused(true)}
-                  onKeyDown={handleKeyDown}
-                  className="pl-10 pr-9 h-10 text-sm rounded-full border-border bg-muted/50 hover:bg-muted/80 focus:bg-background focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:border-primary/60 transition-all w-full"
-                  data-testid="global-search-input"
-                />
-                {searchQuery && (
-                  <button
-                    onClick={() => { setSearchQuery(""); setSearchFocused(false); }}
-                    className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 flex items-center justify-center rounded-full hover:bg-muted text-muted-foreground transition-colors"
-                    aria-label="Clear search"
-                  >
-                    <X className="w-3 h-3" />
-                  </button>
-                )}
-              </div>
-              {searchFocused && <SearchResults />}
-            </div>
 
-            {/* ── Desktop nav links ──────────────────────────────────────── */}
-            <nav className="hidden lg:flex items-center gap-0.5 shrink-0" aria-label="Main navigation">
+  {/* ── Desktop nav links ──────────────────────────────────────── */}
+            <nav className="hidden lg:flex items-center gap-0.5 shrink-0 mx-auto" aria-label="Main navigation">
               {navLinks.map((link) => {
                 const active = location === link.href;
                 return (
@@ -418,9 +392,40 @@ export default function Navbar() {
                 );
               })}
             </nav>
+            {/* ── Desktop search + right actions — single div ───────────── */}
+            <div className="hidden md:flex items-center gap-3 ml-auto">
 
-            {/* ── Desktop right section ──────────────────────────────────── */}
-            <div className="hidden md:flex items-center gap-2 shrink-0 ml-auto lg:ml-0">
+              {/* Search */}
+              <div ref={searchRef} className="relative w-48 lg:w-64 xl:w-80">
+                <div className="relative">
+                  <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+                  <Input
+                    type="text"
+                    placeholder="Search for services, categories…"
+                    value={searchQuery}
+                    onChange={(e) => { setSearchQuery(e.target.value); setSearchFocused(true); }}
+                    onFocus={() => setSearchFocused(true)}
+                    onKeyDown={handleKeyDown}
+                    className="pl-10 pr-9 h-10 text-sm rounded-full border-border bg-muted/50 hover:bg-muted/80 focus:bg-background focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:border-primary/60 transition-all w-full"
+                    data-testid="global-search-input"
+                  />
+                  {searchQuery && (
+                    <button
+                      onClick={() => { setSearchQuery(""); setSearchFocused(false); }}
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 flex items-center justify-center rounded-full hover:bg-muted text-muted-foreground transition-colors"
+                      aria-label="Clear search"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  )}
+                </div>
+                {searchFocused && <SearchResults />}
+              </div>
+
+              {/* Divider */}
+              <div className="h-6 w-px bg-border shrink-0" />
+
+              {/* Auth / user controls */}
               {user ? (
                 <>
                   {/* Location pill */}
@@ -741,11 +746,16 @@ export default function Navbar() {
       <Dialog open={showLoginModal} onOpenChange={setShowLoginModal}>
         <DialogContent className="max-w-md p-6 rounded-3xl border border-border bg-card shadow-2xl">
           <DialogHeader className="mb-4 text-center">
-            <div className="mx-auto w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mb-3 shadow-sm">
-              <Wrench className="w-7 h-7 text-primary" />
+            <div className="flex justify-center mb-3">
+              <img
+                src="/homemate.png"
+                alt="HomeMate"
+                className="h-14 w-auto object-contain"
+                draggable={false}
+              />
             </div>
             <DialogTitle className="text-2xl font-bold text-foreground">
-              Sign in to UrbanServices
+              Sign in to HomeMate
             </DialogTitle>
             <DialogDescription className="text-muted-foreground text-sm mt-1">
               Pick a simulation account or enter custom credentials.

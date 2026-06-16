@@ -39,47 +39,99 @@ export default function HomePage() {
   return (
     <div className="min-h-screen">
       {/* Hero */}
-      <section className="relative bg-gradient-to-br from-primary via-primary to-[hsl(160,40%,20%)] text-primary-foreground py-20 px-4 overflow-hidden">
-        <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_30%_70%,hsl(25,80%,55%)_0%,transparent_60%)]" />
-        <div className="relative max-w-7xl mx-auto">
-          <div className="max-w-2xl">
-            <Badge className="mb-4 bg-white/20 text-primary-foreground border-white/30 hover:bg-white/30" data-aos="fade-down">
-              Trusted by 10,000+ customers
+      <section className="relative text-white py-20 px-4 overflow-hidden min-h-[520px] flex items-center"
+        style={{
+          backgroundImage: "url('/bh-hero.webp')",
+          backgroundSize: "cover",
+          backgroundPosition: "center ",
+          backgroundRepeat: "no-repeat",
+          display:"block"
+        }}
+      >
+        {/* Dark overlay — left side denser so text is always readable */}
+        {/* <div className="absolute inset-0"
+          style={{
+            background: "linear-gradient(100deg, rgba(30,53,96,0.92) 0%, rgba(30,53,96,0.82) 45%, rgba(30,53,96,0.30) 75%, rgba(30,53,96,0.10) 100%)"
+          }}
+        /> */}
+
+        <div className="relative max-w-7xl mx-auto w-full">
+          <div className="max-w-xl">
+            <Badge
+              className="mb-4 border border-white/30 text-white font-semibold text-xs px-3 py-1"
+              style={{ background: "rgba(224,123,26,0.85)" }}
+              data-aos="fade-down"
+            >
+              ✦ Trusted by 10,000+ customers
             </Badge>
-            <h1 className="text-4xl md:text-5xl font-bold leading-tight mb-4" data-aos="fade-up" data-aos-delay="100">
+
+            <h1 className="text-4xl md:text-5xl font-bold leading-tight mb-4 drop-shadow-sm" data-aos="fade-up" data-aos-delay="100">
               Home services,<br />
-              <span className="text-[hsl(25,80%,70%)]">done right.</span>
+              <span style={{ color: "#f5973a" }}>done right.</span>
             </h1>
-            <p className="text-lg text-primary-foreground/80 mb-8 leading-relaxed" data-aos="fade-up" data-aos-delay="200">
-              Verified professionals for cleaning, repair, beauty, and more — 
+
+            <p className="text-base md:text-lg text-[#182339] font-semibold mb-8 leading-relaxed" data-aos="fade-up" data-aos-delay="200">
+              Verified professionals for cleaning, repair, beauty, and more —
               at your doorstep, on your schedule.
             </p>
+
             <div className="flex flex-col sm:flex-row gap-3" data-aos="fade-up" data-aos-delay="300">
               <Link href="/services">
-                <Button size="lg" className="bg-white text-primary hover:bg-white/90 font-semibold" data-testid="button-explore-services">
+                <Button
+                  size="lg"
+                  className="font-bold shadow-lg px-7"
+                  style={{ background: "#e07b1a", color: "#fff", border: "none" }}
+                  data-testid="button-explore-services"
+                >
                   Explore Services
                   <ArrowRight className="ml-2 w-4 h-4" />
                 </Button>
               </Link>
-              <Link href="/bookings/new">
-                <Button size="lg" variant="outline" className="border-white/50 text-primary-foreground hover:bg-white/10" data-testid="button-book-now-hero">
-                  Book Now
-                </Button>
-              </Link>
+             
             </div>
           </div>
         </div>
       </section>
 
       {/* Trust indicators */}
-      <section className="bg-card border-b border-border overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 grid grid-cols-2 md:grid-cols-4 divide-x divide-border">
-          <TrustBadge icon={<Shield className="w-5 h-5" />} title="Verified Pros" desc="Background checked" delay={100} />
-          <TrustBadge icon={<Clock className="w-5 h-5" />} title="On-Time" desc="Guaranteed arrival" delay={200} />
-          <TrustBadge icon={<ThumbsUp className="w-5 h-5" />} title="Satisfaction" desc="100% guarantee" delay={300} />
-          <TrustBadge icon={<Award className="w-5 h-5" />} title="Trained Staff" desc="Certified professionals" delay={400} />
-        </div>
-      </section>
+  {/* Trust indicators */}
+<section className="relative overflow-hidden border-y border-border bg-background py-6">
+  {/* Background glow */}
+  <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-transparent to-primary/10" />
+  <div className="absolute -top-20 left-1/2 h-40 w-40 -translate-x-1/2 rounded-full bg-primary/20 blur-3xl" />
+
+  <div className="relative mx-auto max-w-7xl px-4">
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <TrustBadge
+        icon={<Shield className="h-5 w-5" />}
+        title="Verified Pros"
+        desc="Background checked"
+        delay={100}
+      />
+
+      <TrustBadge
+        icon={<Clock className="h-5 w-5" />}
+        title="On-Time Service"
+        desc="Guaranteed arrival"
+        delay={200}
+      />
+
+      <TrustBadge
+        icon={<ThumbsUp className="h-5 w-5" />}
+        title="Satisfaction"
+        desc="100% service guarantee"
+        delay={300}
+      />
+
+      <TrustBadge
+        icon={<Award className="h-5 w-5" />}
+        title="Trained Staff"
+        desc="Certified professionals"
+        delay={400}
+      />
+    </div>
+  </div>
+</section>
 
       {/* Categories */}
       <section className="max-w-7xl mx-auto px-4 py-14 overflow-hidden">

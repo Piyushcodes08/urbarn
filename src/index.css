@@ -2,6 +2,9 @@
 @import "tw-animate-css";
 @plugin "@tailwindcss/typography";
 
+/* ── Google Fonts: Nunito (body) ── */
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap');
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
@@ -73,95 +76,102 @@
   --elevate-1: rgba(0,0,0, .03);
   --elevate-2: rgba(0,0,0, .08);
 
-  /* Deep Emerald & Warm Taupe Palette */
-  --background: 40 33% 98%; /* Warm cream */
-  --foreground: 160 30% 15%; /* Deep pine/slate */
+  /* ── HomeMate Brand Palette ──────────────────────────────────────────────
+     Navy  : #1e3560  →  hsl(220 52% 24%)
+     Orange: #e07b1a  →  hsl(29 79% 49%)
+     Beige : #c9a07a  →  hsl(30 38% 63%)
+     Light background: warm off-white #f8f7f4 → hsl(40 20% 97%)
+  ─────────────────────────────────────────────────────────────────────── */
 
-  --border: 40 20% 88%;
-  --input: 40 20% 88%;
-  --ring: 160 50% 25%;
+  --background: 40 20% 97%;        /* warm off-white */
+  --foreground: 220 40% 16%;       /* deep navy text */
+
+  --border: 220 18% 88%;
+  --input: 220 18% 88%;
+  --ring: 29 79% 49%;              /* orange focus ring */
 
   --card: 0 0% 100%;
-  --card-foreground: 160 30% 15%;
-  --card-border: 40 20% 92%;
+  --card-foreground: 220 40% 16%;
+  --card-border: 220 18% 91%;
 
   --popover: 0 0% 100%;
-  --popover-foreground: 160 30% 15%;
-  --popover-border: 40 20% 92%;
+  --popover-foreground: 220 40% 16%;
+  --popover-border: 220 18% 91%;
 
-  --primary: 160 50% 25%; /* Deep Emerald */
-  --primary-foreground: 40 33% 98%;
+  --primary: 220 52% 24%;          /* navy #1e3560 */
+  --primary-foreground: 40 20% 97%;
 
-  --secondary: 40 40% 92%; /* Warm taupe */
-  --secondary-foreground: 160 30% 15%;
+  --secondary: 30 38% 93%;         /* light beige tint */
+  --secondary-foreground: 220 40% 16%;
 
-  --muted: 40 20% 92%;
-  --muted-foreground: 160 15% 45%;
+  --muted: 220 15% 94%;
+  --muted-foreground: 220 20% 50%;
 
-  --accent: 25 80% 55%; /* Warm terracotta accent */
+  --accent: 29 79% 49%;            /* orange #e07b1a */
   --accent-foreground: 0 0% 100%;
 
   --destructive: 0 70% 50%;
   --destructive-foreground: 0 0% 100%;
 
-  --chart-1: 160 50% 25%;
-  --chart-2: 25 80% 55%;
-  --chart-3: 200 40% 40%;
-  --chart-4: 40 50% 70%;
-  --chart-5: 330 30% 50%;
+  --chart-1: 220 52% 24%;          /* navy */
+  --chart-2: 29 79% 49%;           /* orange */
+  --chart-3: 30 38% 63%;           /* beige */
+  --chart-4: 220 30% 55%;          /* mid-blue */
+  --chart-5: 29 60% 70%;           /* light orange */
 
-  --sidebar: 160 30% 15%;
-  --sidebar-foreground: 40 33% 98%;
-  --sidebar-border: 160 30% 20%;
-  --sidebar-primary: 25 80% 55%;
+  --sidebar: 220 52% 18%;          /* darker navy */
+  --sidebar-foreground: 40 20% 97%;
+  --sidebar-border: 220 40% 28%;
+  --sidebar-primary: 29 79% 49%;
   --sidebar-primary-foreground: 0 0% 100%;
-  --sidebar-accent: 160 30% 25%;
-  --sidebar-accent-foreground: 40 33% 98%;
-  --sidebar-ring: 25 80% 55%;
+  --sidebar-accent: 220 40% 28%;
+  --sidebar-accent-foreground: 40 20% 97%;
+  --sidebar-ring: 29 79% 49%;
 
-  --app-font-sans: 'Inter', sans-serif;
-  --app-font-serif: 'Playfair Display', serif;
+  /* Google Fonts – Inter for body, Nunito for headings (clean & friendly) */
+  --app-font-sans: 'Nunito', 'Inter', sans-serif;
+  --app-font-serif: 'Georgia', serif;
   --app-font-mono: 'Space Mono', monospace;
 
-  --radius: 0.5rem;
+  --radius: 0.625rem;              /* slightly rounder cards */
 }
 
 .dark {
-  --background: 160 30% 10%;
-  --foreground: 40 33% 98%;
+  --background: 220 40% 10%;
+  --foreground: 40 20% 96%;
 
-  --border: 160 30% 20%;
-  --input: 160 30% 20%;
-  --ring: 25 80% 55%;
+  --border: 220 30% 22%;
+  --input: 220 30% 22%;
+  --ring: 29 79% 55%;
 
-  --card: 160 30% 13%;
-  --card-foreground: 40 33% 98%;
-  --card-border: 160 30% 20%;
+  --card: 220 40% 13%;
+  --card-foreground: 40 20% 96%;
+  --card-border: 220 30% 22%;
 
-  --popover: 160 30% 13%;
-  --popover-foreground: 40 33% 98%;
-  --popover-border: 160 30% 20%;
+  --popover: 220 40% 13%;
+  --popover-foreground: 40 20% 96%;
+  --popover-border: 220 30% 22%;
 
-  --primary: 25 80% 55%;
+  --primary: 29 79% 52%;           /* orange becomes primary in dark */
   --primary-foreground: 0 0% 100%;
 
-  --secondary: 160 30% 20%;
-  --secondary-foreground: 40 33% 98%;
+  --secondary: 220 30% 20%;
+  --secondary-foreground: 40 20% 96%;
 
-  --muted: 160 30% 20%;
-  --muted-foreground: 40 10% 70%;
+  --muted: 220 30% 20%;
+  --muted-foreground: 220 15% 65%;
 
-  --accent: 160 50% 25%;
-  --accent-foreground: 40 33% 98%;
+  --accent: 220 52% 40%;           /* navy becomes accent in dark */
+  --accent-foreground: 40 20% 96%;
 
-  --destructive: 0 60% 40%;
+  --destructive: 0 60% 42%;
   --destructive-foreground: 0 0% 100%;
 
-  --chart-1: 25 80% 55%;
-  --chart-2: 160 50% 25%;
-  --chart-3: 200 40% 40%;
-  --chart-4: 40 50% 70%;
-  --chart-5: 330 30% 50%;
+  --chart-1: 29 79% 52%;
+  --chart-2: 220 52% 55%;
+  --chart-3: 30 38% 63%;
+  --chart-4: 220 30% 55%;
+  --chart-5: 29 60% 70%;
 }
 
 @layer base {
@@ -171,12 +181,56 @@
 
   body {
     @apply font-sans antialiased bg-background text-foreground;
+    font-feature-settings: "cv11", "ss01";
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-sans font-bold tracking-tight text-foreground;
+  }
+
+  /* Cards get a consistent soft shadow + border */
+  .card, [class*="rounded-xl"], [class*="rounded-2xl"] {
+    box-shadow: 0 1px 4px rgba(30, 53, 96, 0.06), 0 4px 16px rgba(30, 53, 96, 0.04);
+  }
+
+  /* Primary buttons use navy with orange hover glow */
+  button[class*="bg-primary"]:hover,
+  [class*="bg-primary"]:hover {
+    box-shadow: 0 4px 16px rgba(224, 123, 26, 0.25);
+  }
+
+  /* Accent / orange buttons */
+  button[class*="bg-accent"]:hover {
+    box-shadow: 0 4px 16px rgba(224, 123, 26, 0.3);
+  }
+
+  /* Smooth scrolling */
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Selection color */
+  ::selection {
+    background-color: hsl(29 79% 49% / 0.2);
+    color: hsl(220 52% 24%);
   }
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   Urban Company – Category Detail Page styles
+   HomeMate – Global utility classes & page-specific styles
+   Brand: Navy #1e3560 | Orange #e07b1a | Beige #c9a07a
    ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Brand gradient helpers ─────────────────────────────────────────────────── */
+.hm-gradient-navy {
+  background: linear-gradient(135deg, #1e3560 0%, #2a4a7f 100%);
+}
+.hm-gradient-orange {
+  background: linear-gradient(135deg, #e07b1a 0%, #f5973a 100%);
+}
+.hm-gradient-warm {
+  background: linear-gradient(135deg, #1e3560 0%, #e07b1a 100%);
+}
 
 /* ── Hero ──────────────────────────────────────────────────────────────────── */
 .uc-hero {
